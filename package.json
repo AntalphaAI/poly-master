@@ -1,0 +1,26 @@
+{
+  "name": "poly-master",
+  "version": "0.1.0",
+  "description": "Polymarket copy-trading skill for OpenClaw agents",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsx watch src/index.ts",
+    "start": "node dist/index.js",
+    "test:clob": "tsx scripts/test-clob.ts"
+  },
+  "dependencies": {
+    "@polymarket/clob-client": "^5.8.1",
+    "ethers": "^5.7.2",
+    "better-sqlite3": "^11.0.0",
+    "express": "^4.21.0"
+  },
+  "devDependencies": {
+    "@types/better-sqlite3": "^7.6.8",
+    "@types/express": "^4.17.21",
+    "@types/node": "^22.0.0",
+    "tsx": "^4.19.0",
+    "typescript": "^5.6.0"
+  }
+}
