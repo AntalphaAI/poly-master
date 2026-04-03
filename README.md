@@ -1,53 +1,56 @@
-# Poly Master — Polymarket Copy Trading
+# Poly Master — Polymarket Prediction Market
 
-🎯 Follow top prediction market traders and automatically copy their positions.
+🎯 Full-stack Polymarket access: discover markets, invest in predictions, copy-trade top traders, track your portfolio.
+
+**Zero custody** — private keys never leave your wallet.
 
 ## Features
 
-- **Trader Discovery** — Browse top performers by win rate, ROI, and trade volume
-- **Copy Trading** — Configurable copy ratios and aggregation windows
-- **Risk Management** — Stop-loss, take-profit, position limits, max slippage
-- **PnL Reporting** — Daily/weekly/monthly reports with per-trader breakdown
-- **Zero Custody** — Private keys never leave the user's wallet
+| Feature | Description |
+|---------|-------------|
+| 📈 Market Discovery | Trending markets, new events, category browsing |
+| 💰 Direct Trading | Buy/sell outcome tokens with wallet signing |
+| 👥 Copy Trading | Follow top traders, configurable ratios |
+| 📊 Portfolio & PnL | Positions, trade history, performance reports |
+| 🛡️ Risk Management | Stop-loss, take-profit, position limits |
 
 ## Architecture
 
 ```
-User ←→ AI Agent ←→ MCP Tools ←→ Polymarket CLOB API
+User ←→ AI Agent ←→ Antalpha MCP Server ←→ Polymarket APIs
                           ↕
-                  Signing Server (Express)
+                    Browser Signing Page
                           ↕
-                  User's Wallet (MetaMask/OKX/Trust/TokenPocket)
+                    User's Wallet (MetaMask/OKX/Trust/TokenPocket)
 ```
-
-## MCP Tools
-
-| Tool | Description |
-|------|-------------|
-| `poly-master-setup` | Configure wallet + derive API credentials |
-| `poly-master-traders` | Discover top traders |
-| `poly-master-follow` | Set copy targets and ratios |
-| `poly-master-start` | Start copy-trading monitor |
-| `poly-master-pause` | Pause/resume copy trading |
-| `poly-master-status` | Current positions and system status |
-| `poly-master-pnl` | PnL report (day/week/month) |
-| `poly-master-risk` | View/modify risk parameters |
 
 ## Quick Start
 
-```bash
-npm install
-npm run build
-```
+Tell your AI agent:
+
+> "看看 Polymarket 上有什么热门预测"
+
+> "Show me trending prediction markets"
+
+> "我想投 $10 赌 Yes"
+
+> "帮我看看我的 Polymarket 持仓"
 
 See [docs/quickstart.md](docs/quickstart.md) for full setup guide.
 
+## MCP Server
+
+This skill connects to the Antalpha MCP Server:
+- **Endpoint**: `https://mcp-skills.ai.antalpha.com/mcp`
+- **Protocol**: Streamable HTTP (MCP 2024-11-05)
+- **Auth**: `antalpha-register` → get `agent_id` + `api_key`
+
 ## Tech Stack
 
-- [Polymarket CLOB Client](https://github.com/Polymarket/clob-client) v5.8.1
-- ethers v5 (Polygon Mainnet, Chain 137)
-- Express (signing page server)
-- better-sqlite3 (local persistence)
+- **Chain**: Polygon Mainnet (Chain ID 137)
+- **Currency**: USDC.e
+- **SDK**: [@polymarket/clob-client](https://github.com/Polymarket/clob-client) v5.8.1
+- **Signing**: EIP-712 typed data via browser page (zero custody)
 
 ## License
 

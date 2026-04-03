@@ -1,0 +1,652 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+  <title>Poly Master</title>
+  <style>
+    :root {
+      --bg: #0a0a0f; --card: #111118; --card-border: #00ff8830;
+      --neon: #00ff88; --neon-dim: #00ff8844; --neon-glow: #00ff8822;
+      --text: #e0e0e0; --text-dim: #888; --text-muted: #555;
+      --error: #ff4444; --info: #4488ff; --surface: #1a1a2e;
+      --radius: 12px; --radius-sm: 8px;
+    }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+      background: var(--bg); color: var(--text);
+      min-height: 100vh; display: flex; flex-direction: column;
+      align-items: center; padding: 16px; -webkit-font-smoothing: antialiased;
+    }
+    .container { width: 100%; max-width: 480px; display: flex; flex-direction: column; gap: 12px; }
+    .header { text-align: center; padding: 20px 0 8px; }
+    .header-icon { font-size: 40px; margin-bottom: 8px; filter: drop-shadow(0 0 12px var(--neon-glow)); }
+    .header-title { font-size: 24px; font-weight: 800; color: var(--neon); letter-spacing: 2px; text-shadow: 0 0 20px var(--neon-glow); }
+    .header-sub { font-size: 12px; color: var(--text-dim); margin-top: 4px; }
+    .progress-bar { display: flex; align-items: center; gap: 0; padding: 0 8px; }
+    .progress-dot {
+      width: 28px; height: 28px; border-radius: 50%; border: 2px solid #333;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 12px; font-weight: 700; color: #555; background: var(--bg);
+      transition: all 0.3s; flex-shrink: 0;
+    }
+    .progress-dot.active { border-color: var(--neon); color: var(--neon); box-shadow: 0 0 12px var(--neon-glow); }
+    .progress-dot.done { border-color: var(--neon); background: var(--neon); color: #000; }
+    .progress-dot.error { border-color: var(--error); color: var(--error); }
+    .progress-line { flex: 1; height: 2px; background: #333; transition: background 0.3s; }
+    .progress-line.done { background: var(--neon); }
+    .order-card {
+      background: var(--card); border: 1px solid var(--card-border);
+      border-radius: var(--radius); padding: 16px; box-shadow: 0 0 30px var(--neon-glow);
+    }
+    .order-card-title { font-size: 13px; font-weight: 600; color: var(--text-dim); margin-bottom: 10px; text-transform: uppercase; letter-spacing: 1px; }
+    .order-market { font-size: 15px; font-weight: 600; color: #fff; margin-bottom: 12px; line-height: 1.4; }
+    .order-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+    .order-cell { background: var(--surface); border-radius: var(--radius-sm); padding: 10px; }
+    .order-cell-label { font-size: 11px; color: var(--text-dim); margin-bottom: 4px; text-transform: uppercase; letter-spacing: 0.5px; }
+    .order-cell-value { font-size: 16px; font-weight: 700; color: #fff; }
+    .order-cell-value.buy { color: var(--neon); }
+    .order-cell-value.sell { color: var(--error); }
+    .step-card {
+      background: var(--card); border: 1px solid transparent; border-radius: var(--radius);
+      padding: 14px 16px; display: flex; align-items: center; gap: 12px;
+      transition: all 0.3s; opacity: 0.5;
+    }
+    .step-card.active { border-color: var(--neon-dim); opacity: 1; box-shadow: 0 0 20px var(--neon-glow); }
+    .step-card.done { border-color: var(--neon); opacity: 1; }
+    .step-card.error { border-color: var(--error); opacity: 1; }
+    .step-icon { font-size: 20px; flex-shrink: 0; width: 28px; text-align: center; }
+    .step-body { flex: 1; min-width: 0; }
+    .step-label { font-size: 14px; font-weight: 600; }
+    .step-detail { font-size: 12px; color: var(--text-dim); margin-top: 2px; word-break: break-all; overflow: hidden; text-overflow: ellipsis; }
+    .step-status { font-size: 12px; color: var(--text-muted); flex-shrink: 0; }
+    .step-status.ok { color: var(--neon); } .step-status.err { color: var(--error); }
+    .wallet-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; padding: 4px; }
+    .wallet-btn {
+      background: var(--surface); border: 1px solid #ffffff15; border-radius: var(--radius-sm);
+      padding: 14px 10px; display: flex; flex-direction: column; align-items: center;
+      gap: 8px; cursor: pointer; transition: all 0.2s; text-decoration: none; color: var(--text);
+    }
+    .wallet-btn:hover, .wallet-btn:active { border-color: var(--neon-dim); background: #1a1a3e; }
+    .wallet-icon { font-size: 28px; } .wallet-name { font-size: 13px; font-weight: 600; }
+    .cta-btn {
+      width: 100%; padding: 16px; border: none; border-radius: var(--radius);
+      font-size: 16px; font-weight: 700; cursor: pointer; font-family: inherit;
+      transition: all 0.2s; letter-spacing: 0.5px;
+    }
+    .cta-btn.primary { background: var(--neon); color: #000; }
+    .cta-btn.primary:hover { background: #00dd77; }
+    .cta-btn:disabled { background: #222; color: #555; cursor: not-allowed; }
+    .cta-btn.success { background: var(--neon); color: #000; }
+    .cta-btn.fail { background: var(--error); color: #fff; }
+    .log-section { background: var(--card); border: 1px solid #ffffff0a; border-radius: var(--radius); overflow: hidden; }
+    .log-toggle { display: flex; align-items: center; justify-content: space-between; padding: 10px 16px; cursor: pointer; font-size: 12px; color: var(--text-dim); user-select: none; }
+    .log-body { max-height: 0; overflow: hidden; transition: max-height 0.3s; }
+    .log-body.open { max-height: 300px; }
+    .log-inner { padding: 0 12px 12px; font-family: 'SF Mono','Consolas', monospace; font-size: 11px; line-height: 1.6; max-height: 260px; overflow-y: auto; color: var(--text-dim); }
+    .log-inner .ok { color: var(--neon); } .log-inner .err { color: var(--error); } .log-inner .info { color: var(--info); }
+    .footer { text-align: center; padding: 16px 0 8px; font-size: 11px; color: var(--text-muted); }
+    @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.5} }
+    .pulsing { animation: pulse 1.5s infinite; }
+  </style>
+</head>
+<body>
+<div class="container">
+  <div class="header">
+    <div class="header-icon">🎯</div>
+    <div class="header-title">POLY MASTER</div>
+    <div class="header-sub" id="headerSub"></div>
+  </div>
+  <div class="progress-bar">
+    <div class="progress-dot" id="pd1">1</div><div class="progress-line" id="pl1"></div>
+    <div class="progress-dot" id="pd2">2</div><div class="progress-line" id="pl2"></div>
+    <div class="progress-dot" id="pd3">3</div><div class="progress-line" id="pl3"></div>
+    <div class="progress-dot" id="pd4">4</div><div class="progress-line" id="pl4"></div>
+    <div class="progress-dot" id="pd5">5</div>
+  </div>
+  <div class="order-card">
+    <div class="order-card-title" id="orderCardTitle"></div>
+    <div class="order-market" id="orderMarket"></div>
+    <div class="order-grid">
+      <div class="order-cell"><div class="order-cell-label" id="lAction"></div><div class="order-cell-value" id="vAction"></div></div>
+      <div class="order-cell"><div class="order-cell-label" id="lAmount"></div><div class="order-cell-value" id="vAmount"></div></div>
+      <div class="order-cell"><div class="order-cell-label" id="lPrice"></div><div class="order-cell-value" id="vPrice">—</div></div>
+      <div class="order-cell"><div class="order-cell-label" id="lShares"></div><div class="order-cell-value" id="vShares">—</div></div>
+    </div>
+  </div>
+  <div id="stepsArea">
+    <div class="step-card" id="step1"><div class="step-icon">🔗</div><div class="step-body"><div class="step-label" id="sl1"></div><div class="step-detail" id="sd1"></div></div><div class="step-status" id="ss1"></div></div>
+    <div id="walletArea" style="display:none"></div>
+    <div class="step-card" id="step2"><div class="step-icon">⛓️</div><div class="step-body"><div class="step-label" id="sl2"></div><div class="step-detail" id="sd2"></div></div><div class="step-status" id="ss2"></div></div>
+    <div class="step-card" id="step3"><div class="step-icon">🔑</div><div class="step-body"><div class="step-label" id="sl3"></div><div class="step-detail" id="sd3"></div></div><div class="step-status" id="ss3"></div></div>
+    <div class="step-card" id="step4"><div class="step-icon">✍️</div><div class="step-body"><div class="step-label" id="sl4"></div><div class="step-detail" id="sd4"></div></div><div class="step-status" id="ss4"></div></div>
+    <div class="step-card" id="step5"><div class="step-icon">🚀</div><div class="step-body"><div class="step-label" id="sl5"></div><div class="step-detail" id="sd5"></div></div><div class="step-status" id="ss5"></div></div>
+  </div>
+  <button class="cta-btn primary" id="ctaBtn" onclick="startTrade()"></button>
+  <div class="log-section">
+    <div class="log-toggle" onclick="document.getElementById('logBody').classList.toggle('open')"><span id="logLabel"></span><span>▸</span></div>
+    <div class="log-body" id="logBody"><div class="log-inner" id="logInner"></div></div>
+  </div>
+  <div class="footer" id="footerText"></div>
+</div>
+
+<script>
+// ================================================================
+// i18n
+// ================================================================
+const LANG = /^zh/i.test(navigator.language || '') ? 'zh' : 'en';
+const S = {
+  en: {
+    headerSub: 'Powered by Antalpha AI · Zero Custody!',
+    orderTitle: 'ORDER DETAILS', lAction: 'Action', lAmount: 'Amount', lPrice: 'Est. Price', lShares: 'Est. Shares',
+    s1: 'Connect Wallet', s2: 'Switch to Polygon', s3: 'Authorize', s4: 'Sign Order', s5: 'Submit & Confirm',
+    wait: 'Waiting', ctaStart: '🚀 Start Trade', ctaOk: '✅ Trade Submitted!', ctaFail: '❌ Failed — Check Log', ctaRetry: '🔄 Retry',
+    log: 'Transaction Log', footer: 'Poly Master by Antalpha AI · Zero Custody',
+    buy: 'BUY', sell: 'SELL', sigClobAuth: 'ClobAuth signature required', sigOrder: 'Order signature required',
+  },
+  zh: {
+    headerSub: 'Powered by Antalpha AI · Zero Custody!',
+    orderTitle: '订单详情', lAction: '操作', lAmount: '金额', lPrice: '预估价格', lShares: '预估份额',
+    s1: '连接钱包', s2: '切换至 Polygon', s3: '授权认证', s4: '签名订单', s5: '提交确认',
+    wait: '等待中', ctaStart: '🚀 开始交易', ctaOk: '✅ 交易已提交！', ctaFail: '❌ 失败 — 查看日志', ctaRetry: '🔄 重试',
+    log: '交易日志', footer: 'Poly Master by Antalpha AI · 零托管',
+    buy: '买入', sell: '卖出', sigClobAuth: '需要 ClobAuth 签名', sigOrder: '需要 Order 签名',
+  },
+};
+function t(k) { return (S[LANG]||{})[k] || S.en[k] || k; }
+
+// ================================================================
+// URL Params & Config
+// ================================================================
+const P = new URLSearchParams(location.search);
+const CFG = {
+  market:  P.get('market')  || 'China invade Taiwan by 2026?',
+  token:   P.get('token')   || '90772332434487149264114862115632028379978765245278600275169585501290867536237',
+  side:    (P.get('side')   || 'BUY').toUpperCase(),
+  amount:  parseFloat(P.get('amount') || '1'),
+  outcome: P.get('outcome') || 'No',
+  proxy:   P.get('proxy')   || '0x3F70c1649DAAa1c923e803E0B8a29fd1C37440e2',
+  eoa:     P.get('eoa')     || '0x81f9c401B0821B6E0a16BC7B1dF0F647F36211Dd',
+  tick:    P.get('tick')    || '0.001',
+  negRisk: P.get('negRisk') === 'true',
+};
+const TICK_CFG = { '0.1':{p:1,s:2,a:3}, '0.01':{p:2,s:2,a:4}, '0.001':{p:3,s:2,a:5}, '0.0001':{p:4,s:2,a:6} };
+const TC = TICK_CFG[CFG.tick] || TICK_CFG['0.001'];
+
+// ================================================================
+// Constants
+// ================================================================
+const CLOB = "https://clob.polymarket.com";
+const CID = 137;
+const CTF = "0x4bFb41d5B3570DeFd03C39a9A4D8dE6Bd8B8982E";
+const NEG_CTF = "0xC5d563A36AE78145C45a50134d48A1215220f80a";
+
+let provider = null, accounts = [], apiCreds = null;
+
+function cksum(a) {
+  if (a.toLowerCase() === CFG.eoa.toLowerCase()) return CFG.eoa;
+  if (a.toLowerCase() === CFG.proxy.toLowerCase()) return CFG.proxy;
+  return a;
+}
+
+// ================================================================
+// Init UI
+// ================================================================
+document.getElementById('headerSub').textContent = t('headerSub');
+document.getElementById('orderCardTitle').textContent = t('orderTitle');
+document.getElementById('orderMarket').textContent = CFG.market;
+document.getElementById('lAction').textContent = t('lAction');
+document.getElementById('lAmount').textContent = t('lAmount');
+document.getElementById('lPrice').textContent = t('lPrice');
+document.getElementById('lShares').textContent = t('lShares');
+const sideClass = CFG.side === 'BUY' ? 'buy' : 'sell';
+document.getElementById('vAction').textContent = t(CFG.side.toLowerCase()) + ' ' + CFG.outcome;
+document.getElementById('vAction').className = 'order-cell-value ' + sideClass;
+document.getElementById('vAmount').textContent = '$' + CFG.amount.toFixed(2);
+for (let i = 1; i <= 5; i++) document.getElementById('sl' + i).textContent = t('s' + i);
+document.getElementById('sd3').textContent = t('sigClobAuth');
+document.getElementById('sd4').textContent = t('sigOrder');
+document.getElementById('ctaBtn').textContent = t('ctaStart');
+document.getElementById('logLabel').textContent = t('log');
+document.getElementById('footerText').textContent = t('footer');
+
+// ================================================================
+// Progress & Logging
+// ================================================================
+function setProgress(n, state) {
+  for (let i = 1; i <= 5; i++) {
+    const d = document.getElementById('pd' + i);
+    const l = i < 5 ? document.getElementById('pl' + i) : null;
+    const sc = document.getElementById('step' + i);
+    const ss = document.getElementById('ss' + i);
+    d.className = 'progress-dot' + (i < n ? ' done' : i === n ? (state === 'error' ? ' error' : ' active') : '');
+    if (l) l.className = 'progress-line' + (i < n ? ' done' : '');
+    sc.className = 'step-card' + (i < n ? ' done' : i === n ? (state === 'error' ? ' error' : ' active') : '');
+    if (i < n) { ss.textContent = '✅'; ss.className = 'step-status ok'; }
+    else if (i === n && state === 'error') { ss.textContent = '❌'; ss.className = 'step-status err'; }
+    else if (i === n) { ss.textContent = '⏳'; ss.className = 'step-status pulsing'; }
+    else { ss.textContent = ''; ss.className = 'step-status'; }
+  }
+}
+function log(msg, cls) {
+  const el = document.getElementById('logInner');
+  const d = document.createElement('div');
+  d.className = cls || '';
+  d.textContent = '[' + new Date().toLocaleTimeString() + '] ' + msg;
+  el.appendChild(d); el.scrollTop = el.scrollHeight;
+}
+
+// ================================================================
+// Wallet Routing
+// ================================================================
+function buildDeeplinks() {
+  const raw = location.href;
+  const enc = encodeURIComponent(raw);
+  const noProto = raw.replace(/^https?:\/\//, '');
+  return [
+    { name: 'MetaMask', icon: '🦊', url: 'https://metamask.app.link/dapp/' + noProto },
+    { name: 'OKX Web3', icon: '🟢', url: 'okx://wallet/dapp/details?dappUrl=' + enc },
+    { name: 'Trust', icon: '🔵', url: 'https://link.trustwallet.com/open_url?coin_id=60&url=' + enc },
+    { name: 'TokenPocket', icon: '🟣', url: 'tpdapp://open?params=' + encodeURIComponent(JSON.stringify({url: raw, chain: 'Polygon'})) },
+  ];
+}
+function showWalletSelector() {
+  const area = document.getElementById('walletArea');
+  if (typeof window.ethereum !== 'undefined') {
+    area.style.display = 'none';
+    return true; // DApp browser, auto-connect
+  }
+  // Check if mobile
+  const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+  if (isMobile) {
+    const links = buildDeeplinks();
+    area.innerHTML = '<div class="wallet-grid">' + links.map(w =>
+      '<a class="wallet-btn" href="' + w.url + '"><div class="wallet-icon">' + w.icon + '</div><div class="wallet-name">' + w.name + '</div></a>'
+    ).join('') + '</div>';
+    area.style.display = 'block';
+    return false;
+  }
+  // Desktop without wallet
+  area.innerHTML = '<div style="text-align:center;padding:16px;color:var(--text-dim);font-size:13px;">No wallet detected. <a href="https://metamask.io/download/" target="_blank" style="color:var(--neon)">Install MetaMask</a> to continue.</div>';
+  area.style.display = 'block';
+  return false;
+}
+
+// ================================================================
+// Ensure Polygon
+// ================================================================
+async function ensurePolygon() {
+  const chainId = await provider.request({ method: 'eth_chainId' });
+  if (chainId !== '0x89') {
+    log('Switching to Polygon...', 'info');
+    try {
+      await provider.request({ method: 'wallet_switchEthereumChain', params: [{ chainId: '0x89' }] });
+    } catch (e) {
+      if (e.code === 4902) {
+        await provider.request({ method: 'wallet_addEthereumChain', params: [{ chainId: '0x89', chainName: 'Polygon Mainnet', nativeCurrency: { name: 'POL', symbol: 'POL', decimals: 18 }, rpcUrls: ['https://polygon-rpc.com'], blockExplorerUrls: ['https://polygonscan.com'] }] });
+      } else throw e;
+    }
+    log('Switched to Polygon ✅', 'ok');
+  } else {
+    log('Already on Polygon ✅', 'ok');
+  }
+}
+
+// ================================================================
+// HMAC (exactly matching Polymarket SDK)
+// ================================================================
+async function buildHmac(secret, ts, method, path, body) {
+  let msg = ts + method + path;
+  if (body !== undefined) msg += body;
+  const san = secret.replace(/-/g,'+').replace(/_/g,'/').replace(/[^A-Za-z0-9+/=]/g,'');
+  const bin = atob(san);
+  const kb = new Uint8Array(bin.length);
+  for (let i = 0; i < bin.length; i++) kb[i] = bin.charCodeAt(i);
+  const ck = await crypto.subtle.importKey('raw', kb.buffer, { name: 'HMAC', hash: 'SHA-256' }, false, ['sign']);
+  const sb = await crypto.subtle.sign('HMAC', ck, new TextEncoder().encode(msg));
+  const sb2 = new Uint8Array(sb);
+  let b = '';
+  for (let i = 0; i < sb2.byteLength; i++) b += String.fromCharCode(sb2[i]);
+  return btoa(b).replace(/\+/g,'-').replace(/\//g,'_');
+}
+
+async function l2Headers(method, path, body) {
+  const ts = String(Math.floor(Date.now() / 1000));
+  const bs = body ? JSON.stringify(body) : undefined;
+  const sig = await buildHmac(apiCreds.secret, ts, method, path, bs);
+  return { 'POLY_ADDRESS': cksum(accounts[0]), 'POLY_SIGNATURE': sig, 'POLY_TIMESTAMP': ts, 'POLY_API_KEY': apiCreds.apiKey, 'POLY_PASSPHRASE': apiCreds.passphrase };
+}
+
+// ================================================================
+// L1 Auth (ClobAuth EIP-712)
+// ================================================================
+async function l1Headers(nonce) {
+  const ts = String(Math.floor(Date.now() / 1000));
+  const td = {
+    types: {
+      EIP712Domain: [{name:"name",type:"string"},{name:"version",type:"string"},{name:"chainId",type:"uint256"}],
+      ClobAuth: [{name:"address",type:"address"},{name:"timestamp",type:"string"},{name:"nonce",type:"uint256"},{name:"message",type:"string"}],
+    },
+    primaryType: "ClobAuth",
+    domain: { name: "ClobAuthDomain", version: "1", chainId: "0x" + CID.toString(16) },
+    message: { address: accounts[0], timestamp: ts, nonce: nonce || 0, message: "This message attests that I control the given wallet" },
+  };
+  const sig = await provider.request({ method: 'eth_signTypedData_v4', params: [accounts[0], JSON.stringify(td)] });
+  return { 'POLY_ADDRESS': accounts[0], 'POLY_SIGNATURE': sig, 'POLY_TIMESTAMP': ts, 'POLY_NONCE': String(nonce || 0) };
+}
+
+// ================================================================
+// SDK Rounding (exact match)
+// ================================================================
+function rdDown(n, dp) { return Math.floor(n * 10**dp) / 10**dp; }
+function rdUp(n, dp) { return Math.ceil(n * 10**dp) / 10**dp; }
+function decPl(n) { if (Number.isInteger(n)) return 0; const s = n.toString().split('.'); return s.length <= 1 ? 0 : s[1].length; }
+
+// ================================================================
+// Main Trade Flow
+// ================================================================
+async function startTrade() {
+  const btn = document.getElementById('ctaBtn');
+  btn.disabled = true; btn.textContent = '⏳...';
+
+  try {
+    // Step 1: Connect wallet
+    setProgress(1);
+    if (!accounts.length) {
+      provider = window.ethereum;
+      if (!provider) { showWalletSelector(); throw new Error('No wallet detected'); }
+      accounts = await provider.request({ method: 'eth_requestAccounts' });
+      if (!accounts.length) throw new Error('No accounts');
+    }
+    document.getElementById('sd1').textContent = cksum(accounts[0]);
+    log('Wallet: ' + cksum(accounts[0]), 'ok');
+    setProgress(2);
+
+    // Step 2: Ensure Polygon
+    await ensurePolygon();
+    setProgress(3);
+
+    // Step 3: Derive API creds
+    log('Deriving API credentials...', 'info');
+    let creds;
+    try {
+      const h = await l1Headers(0);
+      const r = await fetch(CLOB + '/auth/derive-api-key', { method: 'GET', headers: { ...h, 'Content-Type': 'application/json' } });
+      if (r.ok) { creds = await r.json(); log('API Key: ' + creds.apiKey, 'ok'); }
+      else {
+        log('Derive failed, trying create...', 'info');
+        const h2 = await l1Headers(0);
+        const r2 = await fetch(CLOB + '/auth/api-key', { method: 'POST', headers: { ...h2, 'Content-Type': 'application/json' }, body: '{}' });
+        if (r2.ok) { creds = await r2.json(); log('API Key created: ' + creds.apiKey, 'ok'); }
+        else throw new Error('Create API key failed: ' + await r2.text());
+      }
+    } catch (e) { if (e.code === 4001) throw new Error('User rejected signature'); throw e; }
+    apiCreds = creds;
+    document.getElementById('sd3').textContent = 'Key: ' + creds.apiKey.substring(0, 8) + '...';
+    setProgress(4);
+
+    // Step 4: Build and sign order
+    log('Fetching orderbook...', 'info');
+    const bookResp = await fetch(CLOB + '/book?token_id=' + CFG.token);
+    const bookData = await bookResp.json();
+    const asks = bookData.asks || [];
+    const bids = bookData.bids || [];
+
+    let marketPrice = 0;
+    if (CFG.side === 'BUY') {
+      if (!asks.length) throw new Error('No asks in orderbook');
+      let sum = 0;
+      for (let i = asks.length - 1; i >= 0; i--) {
+        sum += parseFloat(asks[i].size) * parseFloat(asks[i].price);
+        if (sum >= CFG.amount) { marketPrice = parseFloat(asks[i].price); break; }
+      }
+      if (!marketPrice) marketPrice = parseFloat(asks[asks.length - 1].price);
+    } else {
+      if (!bids.length) throw new Error('No bids in orderbook');
+      let sum = 0;
+      for (let i = bids.length - 1; i >= 0; i--) {
+        sum += parseFloat(bids[i].size) * parseFloat(bids[i].price);
+        if (sum >= CFG.amount) { marketPrice = parseFloat(bids[i].price); break; }
+      }
+      if (!marketPrice) marketPrice = parseFloat(bids[bids.length - 1].price);
+    }
+    log('Market price: $' + marketPrice, 'ok');
+
+    // SDK rounding
+    const rawPrice = rdDown(marketPrice, TC.p);
+    const rawMaker = rdDown(CFG.amount, TC.s);
+    let rawTaker;
+    if (CFG.side === 'BUY') {
+      rawTaker = rawMaker / rawPrice;
+    } else {
+      rawTaker = rawMaker * rawPrice;
+    }
+    if (decPl(rawTaker) > TC.a) {
+      rawTaker = rdUp(rawTaker, TC.a + 4);
+      if (decPl(rawTaker) > TC.a) rawTaker = rdDown(rawTaker, TC.a);
+    }
+    const makerAmt = Math.round(rawMaker * 1e6);
+    const takerAmt = Math.round(rawTaker * 1e6);
+    log('Maker: ' + makerAmt + ' Taker: ' + takerAmt + ' Price: $' + rawPrice, 'info');
+
+    document.getElementById('vPrice').textContent = '$' + rawPrice.toFixed(TC.p);
+    document.getElementById('vShares').textContent = '~' + rawTaker.toFixed(4);
+
+    // EIP-712 Order
+    const signerAddr = cksum(accounts[0]);
+    const salt = String(Math.floor(Math.random() * 1e12));
+    const orderDomain = {
+      name: "Polymarket CTF Exchange", version: "1",
+      chainId: "0x" + CID.toString(16),
+      verifyingContract: CFG.negRisk ? NEG_CTF : CTF,
+    };
+    const orderTypes = {
+      EIP712Domain: [{name:"name",type:"string"},{name:"version",type:"string"},{name:"chainId",type:"uint256"},{name:"verifyingContract",type:"address"}],
+      Order: [
+        {name:"salt",type:"uint256"},{name:"maker",type:"address"},{name:"signer",type:"address"},
+        {name:"taker",type:"address"},{name:"tokenId",type:"uint256"},{name:"makerAmount",type:"uint256"},
+        {name:"takerAmount",type:"uint256"},{name:"expiration",type:"uint256"},{name:"nonce",type:"uint256"},
+        {name:"feeRateBps",type:"uint256"},{name:"side",type:"uint8"},{name:"signatureType",type:"uint8"},
+      ],
+    };
+    const orderMsg = {
+      salt: salt, maker: CFG.proxy, signer: signerAddr,
+      taker: "0x0000000000000000000000000000000000000000",
+      tokenId: CFG.token,
+      makerAmount: String(makerAmt), takerAmount: String(takerAmt),
+      expiration: "0", nonce: "0", feeRateBps: "0",
+      side: CFG.side === 'BUY' ? "0" : "1",
+      signatureType: "2",
+    };
+    const typedData = { types: orderTypes, primaryType: "Order", domain: orderDomain, message: orderMsg };
+
+    log('Requesting Order signature...', 'info');
+    const signature = await provider.request({
+      method: 'eth_signTypedData_v4',
+      params: [accounts[0], JSON.stringify(typedData)],
+    });
+    log('Order signed: ' + signature.substring(0, 20) + '...', 'ok');
+    document.getElementById('sd4').textContent = 'Signed ✅';
+    setProgress(5);
+
+    // Step 5: Submit
+    log('Submitting order...', 'info');
+    const payload = {
+      deferExec: false,
+      order: {
+        salt: parseInt(salt), maker: CFG.proxy, signer: signerAddr,
+        taker: "0x0000000000000000000000000000000000000000",
+        tokenId: CFG.token,
+        makerAmount: String(makerAmt), takerAmount: String(takerAmt),
+        side: CFG.side, expiration: "0", nonce: "0", feeRateBps: "0",
+        signatureType: 2, signature: signature,
+      },
+      owner: apiCreds.apiKey,
+      orderType: "FOK",
+    };
+
+    const hdrs = await l2Headers('POST', '/order', payload);
+    const resp = await fetch(CLOB + '/order', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', ...hdrs },
+      body: JSON.stringify(payload),
+    });
+    const result = await resp.json();
+    log('Response (' + resp.status + '): ' + JSON.stringify(result), resp.ok ? 'ok' : 'err');
+
+    if (resp.ok) {
+      const orderId = result.orderID || result.orderId || '';
+      document.getElementById('sd5').textContent = 'Order ID: ' + (orderId || 'submitted');
+      setProgress(6); // all done
+      btn.className = 'cta-btn success'; btn.textContent = t('ctaOk'); btn.disabled = false;
+      log('🎉 ' + (LANG === 'zh' ? '交易已成功提交！' : 'Trade submitted successfully!'), 'ok');
+
+      // Poll for fill status
+      if (orderId) {
+        pollOrderFill(orderId);
+      }
+    } else {
+      throw new Error(JSON.stringify(result));
+    }
+
+  } catch (err) {
+    log('Error: ' + err.message, 'err');
+    const step = !accounts.length ? 1 : !apiCreds ? 3 : 4;
+    setProgress(step, 'error');
+    document.getElementById('sd' + step).textContent = err.message.substring(0, 60);
+    btn.className = 'cta-btn fail'; btn.textContent = t('ctaRetry');
+    btn.disabled = false; btn.onclick = () => { btn.className = 'cta-btn primary'; startTrade(); };
+  }
+}
+
+// ================================================================
+// Fill Status Polling
+// ================================================================
+async function pollOrderFill(orderId) {
+  const maxAttempts = 30; // 30 x 2s = 60s max
+  const interval = 2000;
+  let attempts = 0;
+
+  log((LANG === 'zh' ? '⏳ 正在查询成交状态...' : '⏳ Checking fill status...'), 'info');
+
+  const poll = setInterval(async () => {
+    attempts++;
+    try {
+      const hdrs = await l2Headers('GET', '/order/' + orderId, null);
+      const r = await fetch(CLOB + '/order/' + orderId, {
+        method: 'GET',
+        headers: { 'Content-Type': 'application/json', ...hdrs },
+      });
+      if (!r.ok) {
+        if (attempts >= maxAttempts) { clearInterval(poll); log((LANG === 'zh' ? '⏰ 查询超时，请稍后在 Polymarket 查看' : '⏰ Polling timed out, check Polymarket later'), 'info'); }
+        return;
+      }
+      const data = await r.json();
+      const status = (data.status || data.order_status || '').toUpperCase();
+      const filled = parseFloat(data.size_matched || data.filledSize || '0');
+      const total = parseFloat(data.original_size || data.size || '0');
+
+      if (status === 'MATCHED' || status === 'FILLED' || filled >= total && total > 0) {
+        clearInterval(poll);
+        showFillNotification(true, filled, total, orderId);
+        log('✅ ' + (LANG === 'zh' ? '订单已成交！成交数量: ' + filled + ' 份' : 'Order filled! Size: ' + filled + ' shares'), 'ok');
+      } else if (status === 'CANCELED' || status === 'CANCELLED' || status === 'EXPIRED') {
+        clearInterval(poll);
+        showFillNotification(false, filled, total, orderId);
+        log('❌ ' + (LANG === 'zh' ? '订单未成交 (' + status + ')' : 'Order not filled (' + status + ')'), 'err');
+      } else if (attempts >= maxAttempts) {
+        clearInterval(poll);
+        if (filled > 0) {
+          showFillNotification(true, filled, total, orderId);
+          log('⚠️ ' + (LANG === 'zh' ? '部分成交: ' + filled + '/' + total + ' 份' : 'Partial fill: ' + filled + '/' + total + ' shares'), 'info');
+        } else {
+          log((LANG === 'zh' ? '⏰ 查询超时，订单状态: ' + status : '⏰ Polling timed out, status: ' + status), 'info');
+        }
+      }
+    } catch (e) {
+      if (attempts >= maxAttempts) { clearInterval(poll); }
+    }
+  }, interval);
+}
+
+function showFillNotification(success, filled, total, orderId) {
+  // Remove existing notification if any
+  const existing = document.getElementById('fill-notification');
+  if (existing) existing.remove();
+
+  const side = CFG.side === 'BUY' ? (LANG === 'zh' ? '买入' : 'Bought') : (LANG === 'zh' ? '卖出' : 'Sold');
+  const outcome = CFG.outcome;
+  const color = success ? 'var(--neon)' : 'var(--error)';
+  const icon = success ? '✅' : '❌';
+  const title = success
+    ? (LANG === 'zh' ? '成交确认' : 'Trade Confirmed')
+    : (LANG === 'zh' ? '订单未成交' : 'Order Not Filled');
+  const detail = success
+    ? (LANG === 'zh'
+        ? `${side} ${filled} 份 ${outcome} @ $${CFG.amount.toFixed(2)} USDC`
+        : `${side} ${filled} ${outcome} shares @ $${CFG.amount.toFixed(2)} USDC`)
+    : (LANG === 'zh' ? '订单已取消或过期' : 'Order was cancelled or expired');
+
+  const div = document.createElement('div');
+  div.id = 'fill-notification';
+  div.style.cssText = `
+    position: fixed; top: 0; left: 0; right: 0; z-index: 9999;
+    background: linear-gradient(135deg, ${success ? '#0a2a1a' : '#2a0a0a'}, var(--bg));
+    border-bottom: 2px solid ${color};
+    padding: 16px; text-align: center;
+    animation: slideDown 0.4s ease-out;
+    box-shadow: 0 4px 20px ${success ? 'rgba(0,255,136,0.2)' : 'rgba(255,68,68,0.2)'};
+  `;
+  div.innerHTML = `
+    <div style="font-size:28px;margin-bottom:6px">${icon}</div>
+    <div style="font-size:16px;font-weight:700;color:${color};margin-bottom:4px">${title}</div>
+    <div style="font-size:13px;color:var(--text-dim)">${detail}</div>
+    <div style="font-size:11px;color:var(--text-muted);margin-top:6px">Order: ${orderId.substring(0, 8)}...</div>
+  `;
+  document.body.prepend(div);
+
+  // Also update the step 5 text
+  const sd5 = document.getElementById('sd5');
+  if (sd5) {
+    sd5.textContent = success
+      ? (LANG === 'zh' ? '✅ 已成交 ' + filled + ' 份' : '✅ Filled ' + filled + ' shares')
+      : (LANG === 'zh' ? '❌ 未成交' : '❌ Not filled');
+  }
+
+  // Update button
+  const btn = document.getElementById('tradeBtn');
+  if (btn) {
+    btn.className = success ? 'cta-btn success' : 'cta-btn fail';
+    btn.textContent = success
+      ? (LANG === 'zh' ? '🎉 成交完成' : '🎉 Trade Complete')
+      : (LANG === 'zh' ? '❌ 未成交' : '❌ Not Filled');
+  }
+}
+
+// Add slide-down animation
+if (!document.getElementById('fill-anim-style')) {
+  const s = document.createElement('style');
+  s.id = 'fill-anim-style';
+  s.textContent = '@keyframes slideDown { from { transform: translateY(-100%); opacity: 0; } to { transform: translateY(0); opacity: 1; } }';
+  document.head.appendChild(s);
+}
+
+// Auto-connect in DApp browser
+(async () => {
+  if (typeof window.ethereum !== 'undefined') {
+    try {
+      provider = window.ethereum;
+      accounts = await provider.request({ method: 'eth_requestAccounts' });
+      if (accounts.length) {
+        document.getElementById('sd1').textContent = cksum(accounts[0]);
+        log('Wallet connected: ' + cksum(accounts[0]), 'ok');
+      }
+    } catch(e) { log('Auto-connect: ' + e.message, 'info'); }
+  } else {
+    showWalletSelector();
+  }
+})();
+</script>
+</body>
+</html>

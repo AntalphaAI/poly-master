@@ -1,6 +1,28 @@
+# Dependencies
 node_modules/
 dist/
+
+# Internal docs (not for public)
 .internal/
+
+# Database files
 *.db
 *.sqlite
+
+# Environment
 .env
+.env.*
+
+# Backend source (lives in antalpha-skills repo)
+src/
+scripts/
+package.json
+package-lock.json
+tsconfig.json
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Data directory
+data/

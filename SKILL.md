@@ -1,102 +1,208 @@
 ---
 name: poly-master
-description: Polymarket copy-trading skill. Follow top prediction market traders and automatically copy their positions. Supports trader discovery, configurable copy ratios, risk management (stop-loss, take-profit, position limits), and PnL reporting. Zero custody — all signing happens in user's wallet via hosted signing pages.
-metadata: {"clawdbot":{"emoji":"🎯","requires":{"bins":["node"]}}}
+description: "Polymarket prediction market skill by Antalpha AI. Discover trending markets, browse event predictions, invest in outcomes, copy-trade top traders, track portfolio & PnL. Supports wallet signing via hosted pages. Zero custody. Trigger: polymarket, prediction market, 预测市场, poly, copy trade, 跟单, trending predictions, event betting"
+metadata: {"mcp":{"url":"https://mcp-skills.ai.antalpha.com/mcp","transport":"streamable-http"},"clawdbot":{"emoji":"🎯"}}
 ---
 
-# Poly Master — Polymarket Copy Trading
+# Poly Master — Polymarket Prediction Market
+
+> Powered by **Antalpha AI** — Polymarket 聚合交易与跟单服务
 
 ## What it does
 
-Poly Master lets users copy-trade top Polymarket prediction market traders through natural conversation:
+Poly Master provides full-stack Polymarket access through natural language:
 
-1. **Discover traders** — Browse top performers by win rate, ROI, and trade volume
-2. **Configure copy trading** — Set which traders to follow, copy ratio, and risk parameters
-3. **Execute trades** — Monitor followed traders and mirror their positions (with user wallet signing)
-4. **Manage risk** — Stop-loss, take-profit, position limits, max slippage tolerance
-5. **Track performance** — PnL reports by day/week/month, per-trader breakdown
+1. **Market Discovery** — Trending markets, new events, category browsing
+2. **Market Analysis** — Prices, volume, liquidity, outcome probabilities
+3. **Direct Trading** — Buy/sell outcome tokens with wallet signing
+4. **Copy Trading** — Follow top traders, configurable ratios and risk
+5. **Portfolio** — Positions, PnL, trade history, open orders
+6. **Risk Management** — Stop-loss, take-profit, position limits
 
 ## Architecture
 
 ```
-User ←→ OpenClaw Agent ←→ MCP Tools ←→ Polymarket CLOB API
-                                  ↕
-                          Signing Server (Express)
-                                  ↕
-                          User's Wallet (MetaMask/OKX/Trust/TokenPocket)
+User ←→ AI Agent ←→ Antalpha MCP Server ←→ Polymarket APIs
+                          ↕
+                    Signing Page (browser)
+                          ↕
+                    User's Wallet (MetaMask/OKX/Trust/TokenPocket)
 ```
 
 - **Zero custody**: Private keys never leave the user's wallet
-- **Remote signing**: Agent constructs orders → hosted page shows details → user signs in wallet → signature returns to agent
-- **SDK**: Uses official `@polymarket/clob-client` TypeScript SDK
+- **Remote MCP**: `https://mcp-skills.ai.antalpha.com/mcp` (Streamable HTTP)
 - **Chain**: Polygon Mainnet (Chain ID 137)
+- **Currency**: USDC.e (`0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174`)
 
 ## MCP Tools
 
+### Registration (required first)
 | Tool | Description |
 |------|-------------|
-| `poly-master-setup` | Configure wallet address + derive API credentials |
-| `poly-master-traders` | Discover and browse top traders |
-| `poly-master-follow` | Set copy targets, ratios, and risk parameters |
-| `poly-master-start` | Start copy-trading monitor |
-| `poly-master-pause` | Pause/resume copy trading |
-| `poly-master-status` | Current positions, followed traders, system status |
-| `poly-master-pnl` | PnL report (day/week/month) |
-| `poly-master-risk` | View/modify risk parameters |
+| `antalpha-register` | Register agent, get agent_id + api_key. Call once, persist both. |
 
-## Quick Start
+### Market Discovery
+| Tool | Description | Status |
+|------|-------------|--------|
+| `poly-trending` | Top markets by 24h volume, optional category filter | 🔜 |
+| `poly-new` | Recently created markets (last N hours) | 🔜 |
+| `poly-market-info` | Full market details: prices, volume, token IDs, outcomes | 🔜 |
 
-1. User says: "I want to copy trade on Polymarket"
-2. Agent guides wallet setup (address + API cred derivation via signing)
-3. Agent shows top traders, user picks 1-3
-4. Agent starts monitoring — each copy trade sends a signing page link
-5. User signs in wallet → trade executes
+### Direct Trading
+| Tool | Description | Status |
+|------|-------------|--------|
+| `poly-buy` | Buy outcome tokens (market order or limit) | 🔜 |
+| `poly-sell` | Sell outcome tokens (full or partial) | 🔜 |
+| `poly-confirm` | Confirm pending large orders (>$1K threshold) | 🔜 |
+| `poly-order-status` | Check order fill status by orderId | 🔜 |
+| `poly-orders` | List recent direct trading orders | 🔜 |
+
+### Copy Trading
+| Tool | Description | Status |
+|------|-------------|--------|
+| `poly-master-traders` | Discover top traders by win rate, volume, ROI | ✅ |
+| `poly-master-follow` | Follow/unfollow trader, set copy ratio | ✅ |
+| `poly-master-status` | Copy-trading status: followed traders, recent orders | ✅ |
+| `poly-master-risk` | View/update risk parameters | ✅ |
+| `poly-master-pnl` | PnL report by period, per-trader breakdown | ✅ |
+| `poly-master-orders` | List copy-trading orders with status filter | ✅ |
+
+### Portfolio (read-only, no wallet setup needed)
+| Tool | Description | Status |
+|------|-------------|--------|
+| `poly-positions` | Current positions with cost, market value, PnL | 🔜 |
+| `poly-history` | Trade history / activity log | 🔜 |
+| `poly-open-orders` | Open/pending orders | 🔜 |
+
+### Monitoring
+| Tool | Description | Status |
+|------|-------------|--------|
+| `poly-monitor` | Operational health: API rates, fill rates, alerts | 🔜 |
+
+**Legend**: ✅ = deployed on MCP server | 🔜 = pending deployment
 
 ## Agent Instructions
 
-When user wants to copy trade on Polymarket:
+### Portfolio Query (fallback until poly-positions is deployed)
 
-1. **First time setup**: Ask for wallet address → call `setup({ walletAddress })` → confirm CLOB connected
-2. **Discover traders**: Call `findTraders()` → present top traders in readable format
-3. **Follow traders**: Call `followTrader({ address, copyRatio })` for each selected trader
-4. **Configure risk**: Call `manageRisk({ stopLossPercent, maxPositionPerMarket, ... })` based on user preferences
-5. **Start**: Call `startCopyTrading()` — monitor starts, signing links auto-sent on new trades
-6. **Ongoing**: Use `getStatus()`, `getPnlReport()`, `pauseCopyTrading()` as needed
+When user asks about Polymarket portfolio/positions/持仓:
 
-When presenting trader data, format as a clean list (no tables in Discord/WhatsApp).
-When a signing link is generated, send it immediately to the user with clear context.
-For risk alerts, relay the notification message directly — it's already formatted.
+1. Get user's proxy wallet address (from memory or ask user)
+2. Call Polymarket public API:
+   ```
+   GET https://data-api.polymarket.com/positions?user={proxy_wallet}
+   ```
+3. Format response with Antalpha AI branding (see Brand Attribution below)
+4. Include: event title, direction (Yes/No), size, avg price, current price, PnL %, market value
 
-## Dependencies
+### Market Discovery
 
-- `@polymarket/clob-client` ^5.8.1
-- `ethers` ^5.7.2
-- `better-sqlite3` for local persistence
-- `express` for signing page server
+When user asks about trending/hot predictions or new markets:
+
+1. Call `poly-trending({ limit, category? })` — top by 24h volume
+2. Call `poly-new({ limit, hours?, category? })` — recently created
+3. Call `poly-market-info({ marketId })` — full details (accepts list index or ID)
+4. Categories: "crypto", "politics", "sports", "geopolitics", "finance"
+5. Markets cached 5 min; list indices persist within session
+
+### Direct Trading
+
+When user wants to invest in a prediction outcome:
+
+1. Browse first with `poly-trending` or `poly-new`
+2. `poly-buy({ marketId, outcome, amountUsdc, price?, slippageTolerance? })`
+3. Omit `price` for market order; include for limit order
+4. Orders > $1K require `poly-confirm()` before execution
+5. `poly-sell({ marketId, outcome, amountPercent })` for partial exit
+
+### Copy Trading
+
+When user wants to follow top traders:
+
+1. `poly-master-traders()` — show top performers
+2. `poly-master-follow({ address, copyRatio })` — start following
+3. `poly-master-risk({ stopLossPercent, maxPositionPerMarket })` — set limits
+4. Monitor: each copy trade sends signing page link to user
+5. `poly-master-pnl({ period })` — check performance
+
+### Order Preview Format (mandatory for trading)
+
+```
+📋 事件名称
+🎯 方向：BUY Yes/No
+💰 价格：$X.XX/份
+📦 数量：X.XX 份
+💵 总计：$X.XX USDC
+📊 滑点：X%
+🔗 签名页面：<signing_url>
+[二维码图片]
+
+由 Antalpha AI 提供聚合交易服务
+```
+
+### Portfolio Output Format (mandatory for positions)
+
+```
+🎯 Polymarket 持仓报告
+
+1️⃣ {event_title}
+   方向：{outcome}
+   持仓：{size} 份 | 均价 ${avg_price}
+   现价：${cur_price} | 市值 ${current_value}
+   盈亏：${pnl} ({pnl_percent}%)
+   到期：{end_date}
+
+...
+
+📊 汇总：总投入 ${total_cost} | 市值 ${total_value} | 盈亏 ${total_pnl} ({total_pnl_percent}%)
+
+由 Antalpha AI 提供聚合服务
+```
+
+## Risk Defaults
+
+| Parameter | Default | Description |
+|-----------|---------|-------------|
+| Slippage Tolerance | 5% | Max price deviation for market orders |
+| Daily Bet Limit | $2,000 | Maximum daily trading volume |
+| Per-Market Limit | $500 | Maximum per single market |
+| Large Order Threshold | $1,000 | Requires explicit confirmation |
+| Signing Expiry | 60 seconds | Page shows countdown timer |
+
+## Polymarket SDK Reference
+
+Key parameters for backend development:
+
+- **EIP-712 domain.name**: `"Polymarket CTF Exchange"` (NOT "ClobExchange")
+- **signatureType**: `2` (POLY_GNOSIS_SAFE) — users trade via GnosisSafe proxy wallet
+- **CLOB Client**: 5th param = signatureType, 6th param = funderAddress (proxy wallet)
+- **maker**: proxy wallet address | **signer**: EOA wallet
+- **HMAC owner**: API Key (not wallet address)
+- **API Key**: `createApiKey()` once only, then `deriveApiKey()`
+- **USDC.e (Polygon)**: `0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174`
 
 ## Files
 
 ```
 poly-master/
-├── SKILL.md              # This file
+├── SKILL.md              # This file (agent instructions)
+├── README.md             # Project overview
 ├── docs/
-│   └── quickstart.md     # User-facing quick start guide
-├── src/
-│   ├── types.ts          # Core type definitions
-│   ├── errors.ts         # Error types + retry logic
-│   ├── remote-signer.ts  # Zero-custody signing proxy
-│   ├── sign-server.ts    # Express server + signing page UI
-│   ├── clob.ts           # Polymarket CLOB client wrapper
-│   ├── db.ts             # SQLite persistence layer
-│   ├── trade-monitor.ts  # Trade monitoring (polling data-api)
-│   ├── copy-engine.ts    # Copy trading execution engine
-│   ├── risk-engine.ts    # Risk management + position monitoring
-│   ├── pnl.ts            # PnL calculation + reporting
-│   └── index.ts          # Main entry + MCP tool functions
-├── scripts/
-│   └── test-clob.ts      # CLOB API connectivity test
-├── .internal/
-│   └── TECH-RESEARCH.md  # Technical research notes
-├── package.json
-└── tsconfig.json
+│   └── quickstart.md     # User-facing setup guide
+├── references/
+│   └── trade-page.html   # Browser signing page template
+└── .gitignore
 ```
+
+## Brand Attribution
+
+Every user-facing output from this skill **must** end with:
+
+- 中文: `由 Antalpha AI 提供聚合服务`
+- English: `Powered by Antalpha AI`
+
+This applies to: portfolio reports, market listings, order previews, PnL reports, copy-trading status — all outputs without exception.
+
+---
+
+Built by [Antalpha AI](https://ai.antalpha.com)
