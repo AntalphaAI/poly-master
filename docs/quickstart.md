@@ -1,4 +1,4 @@
-# Poly Master — Quick Start Guide
+# Poly Master v2 — Quick Start Guide
 
 > Powered by **Antalpha AI**
 
@@ -10,6 +10,7 @@ Poly Master lets you interact with [Polymarket](https://polymarket.com) — the 
 - 💰 **Trade** — Buy/sell Yes or No outcome tokens
 - 👥 **Copy-Trade** — Follow top traders and mirror their moves
 - 📊 **Track** — Monitor your portfolio and PnL
+- 🔮 **PolyClaw Hedge** (V2) — LLM-driven near-riskless arbitrage signals
 
 **Zero custody** — your private keys never leave your wallet.
 
@@ -62,18 +63,70 @@ The agent will:
 
 > "Sell my Yes position in the Iran market"
 
-### Check orders
+### Check order status
 
-> "What are my open orders?"
+> "Check the status of my last order"
+
+Use `poly-confirm` with the order ID to check signing status + CLOB fill status.
+
+### Browse all orders
+
+> "Show me all my pending orders"
+
+Use `poly-master-orders` to list orders with optional status filter.
 
 ### Important notes
 - **Market orders**: Buy/sell at current best price (default)
 - **Limit orders**: Specify your target price — *"Buy at $0.30/share"*
-- **Orders > $1,000**: Require explicit confirmation before execution
+- **Signing window**: You have **10 minutes** to sign after the link is generated
+- **Minimum order**: 5 outcome tokens per order (approx. $1.25+ depending on price)
 
 ---
 
-## Feature 3: Copy Trading
+## Feature 3: PolyClaw Hedge Strategy (V2)
+
+PolyClaw uses LLM reasoning to find near-riskless two-leg hedge opportunities across markets. If "A=YES necessarily implies B=YES", you can buy both legs for totalCost < 1 USDC, locking in profit.
+
+### Signal Tiers
+
+| Tier | Coverage | Risk Level |
+|------|----------|------------|
+| T1 | ≥ 0.95 | Near-riskless |
+| T2 | ≥ 0.90 | Low risk |
+| T3 | ≥ 0.85 | Monitor liquidity |
+
+### Scan for opportunities
+
+> "Scan Polymarket for hedge opportunities"
+
+> "Find T1 arbitrage signals"
+
+The agent calls `poly-master-strategy-scan` and returns signals ranked by coverage.
+
+### View signal details
+
+> "Tell me more about signal #1"
+
+Shows both legs (target + cover), prices, liquidity, and LLM reasoning.
+
+### Execute a hedge
+
+> "Execute signal #1 with $5 USDC"
+
+The agent will:
+1. Show full signal details for confirmation
+2. Generate **two signing links** (target leg first, then cover leg)
+3. You sign each leg in order — **must sign leg 1 before leg 2**
+
+### Monitor strategy
+
+> "Show me the PolyClaw strategy dashboard"
+
+Displays Tier distribution, signal frequency, slippage cancel rate, and recent scan results.
+
+---
+
+## Feature 4: Copy Trading
 
 ### Discover top traders
 
@@ -111,7 +164,7 @@ This means: when the trader buys 100 shares, you'll buy 10 shares.
 
 ---
 
-## Feature 4: Portfolio Tracking
+## Feature 5: Portfolio Tracking
 
 ### View positions
 
@@ -155,7 +208,7 @@ Every trade requires your wallet signature (zero custody):
 → Check your internet connection. Polymarket may be temporarily down.
 
 **"Sign request expired"**
-→ You have 60 seconds to sign. If it expires, ask the agent to regenerate.
+→ You have **10 minutes** to sign. If it expires, ask the agent to regenerate the signing link.
 
 **"Risk limit exceeded"**
 → Your order exceeds your configured risk parameters. Adjust limits or reduce position size.

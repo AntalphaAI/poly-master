@@ -2,7 +2,7 @@
 
 > **Powered by [Antalpha AI](https://ai.antalpha.com)** — Zero-custody Polymarket aggregated trading & copy-trading for AI agents
 
-[![Version](https://img.shields.io/badge/version-1.0.0-blue)]()
+[![Version](https://img.shields.io/badge/version-2.0.0-blue)]()
 [![MCP](https://img.shields.io/badge/protocol-MCP%202024--11--05-green)]()
 [![Chain](https://img.shields.io/badge/chain-Polygon-8247E5)]()
 [![License](https://img.shields.io/badge/license-MIT-yellow)]()
@@ -25,6 +25,8 @@ Poly Master is an AI agent skill that connects to [Polymarket](https://polymarke
 - 👥 **Copy-trade top traders** — Follow profitable traders with configurable copy ratios
 - 📊 **Track portfolio & PnL** — Monitor positions, unrealized gains, and trade history
 - 🛡️ **Manage risk** — Built-in stop-loss, take-profit, position limits, and large order confirmation
+- 🔮 **PolyClaw Hedge Strategy (V2)** — LLM-driven logical implication arbitrage, T1/T2/T3 tiered signals
+- 🏗️ **Builder Attribution (V2)** — All CLOB orders attributed to Antalpha Builder account for weekly USDC rewards
 
 **🔐 Zero Custody** — Private keys never leave the user's wallet. All transactions are signed in the user's own wallet browser via EIP-712 typed data signatures.
 
@@ -111,13 +113,26 @@ Poly Master is an AI agent skill that connects to [Polymarket](https://polymarke
 |-----------|-------------|
 | Position Tracking | Current holdings with cost basis and market value |
 | PnL Reports | By period (day/week/month) with per-trader breakdown |
-| Trade History | Complete log of all trades with timestamps |
-| Open Orders | Pending orders awaiting fill |
+| Trade History | On-chain history via `poly-history` |
+| Order List | All orders with status filter via `poly-master-orders` |
 
 **Example:**
 > *"How's my Polymarket portfolio?"*
 >
 > *"Show me this week's PnL"*
+
+### 🔮 PolyClaw Hedge Strategy (V2)
+
+| Tier | Coverage | Description |
+|------|----------|-------------|
+| T1 | ≥ 0.95 | Strong logical implication, near-riskless |
+| T2 | ≥ 0.90 | Strong implication, low risk |
+| T3 | ≥ 0.85 | Moderate implication, monitor liquidity |
+
+**Example:**
+> *"Scan for hedge opportunities on Polymarket"*
+>
+> *"Execute signal #2 with $5 USDC"*
 
 ### 🛡️ Risk Management
 
@@ -182,7 +197,7 @@ Simply talk to your AI agent:
 | **Endpoint** | `https://mcp-skills.ai.antalpha.com/mcp` |
 | **Protocol** | Streamable HTTP (MCP 2024-11-05) |
 | **Auth** | Call `antalpha-register` tool to get `agent_id` + `api_key` |
-| **Tools** | 20+ MCP tools for market data, trading, copy-trading, portfolio |
+| **Tools** | 30+ MCP tools for market data, trading, copy-trading, portfolio, hedge strategy |
 
 ---
 
@@ -207,8 +222,35 @@ Agent                    MCP Server              Signing Page            User Wa
 - ✅ Private keys never leave the wallet
 - ✅ Each signature is bound to specific order data (EIP-712)
 - ✅ Signing page shows full order details before signature
-- ✅ Links expire after 60 seconds
+- ✅ Links expire after 10 minutes
 - ✅ No backend custody of funds or keys
+
+---
+
+## MCP Tools Reference (v2)
+
+| Tool | Description |
+|------|-------------|
+| `antalpha-register` | Register agent, get `agent_id` + `api_key` |
+| `poly-trending` | Trending markets by 24h volume |
+| `poly-new` | Recently created markets |
+| `poly-market-info` | Full market details |
+| `poly-buy` | Buy outcome tokens (market/limit) |
+| `poly-sell` | Sell outcome tokens |
+| `poly-confirm` | Check order signing + CLOB fill status |
+| `poly-positions` | Current holdings |
+| `poly-history` | On-chain trade history |
+| `poly-master-orders` | Order list with status filter |
+| `poly-master-traders` | Top traders ranked by performance |
+| `poly-master-follow` | Follow/unfollow a trader |
+| `poly-master-status` | Copy-trading status |
+| `poly-master-risk` | View/update risk parameters |
+| `poly-master-pnl` | PnL report by period |
+| `poly-master-strategy-scan` | Scan for hedge signals (PolyClaw) |
+| `poly-master-strategy-signal` | Get signal details |
+| `poly-master-strategy-execute` | Execute two-leg hedge order |
+| `poly-master-strategy-metrics` | Strategy dashboard |
+| `poly-master-strategy-dry-run` | Toggle dry-run mode |
 
 ---
 
@@ -242,7 +284,7 @@ Agent                    MCP Server              Signing Page            User Wa
 ## Documentation
 
 - [SKILL.md](./SKILL.md) — Full agent instructions, MCP tool reference, output format specs
-- [docs/quickstart.md](./docs/quickstart.md) — User-facing setup guide
+- [docs/quickstart.md](./docs/quickstart.md) — User-facing setup guide (v2 updated)
 
 ---
 
@@ -252,7 +294,7 @@ MIT © [Antalpha AI Team](https://www.antalpha.com/)
 
 ---
 
-**Built by [Antalpha AI](https://ai.antalpha.com)** 🎯
+**Built by [Antalpha AI](https://ai.antalpha.com)** 🎯 | v2.0.0
 
 *Powering the next generation of AI-driven prediction market trading.*
 
@@ -270,6 +312,8 @@ Poly Master 是一个 AI Agent 技能，通过 [Antalpha AI MCP Server](https://
 - 👥 **跟单顶级交易员** — 跟随盈利交易员，可设置跟单比例
 - 📊 **追踪持仓与盈亏** — 实时监控仓位、浮盈浮亏及交易历史
 - 🛡️ **风险管理** — 内置止损、止盈、单市场仓位上限及大单确认机制
+- 🔮 **PolyClaw 对冲策略（V2）** — LLM 驱动的逻辑蕴含套利，T1/T2/T3 分级信号
+- 🏗️ **Builder 归因（V2）** — 所有 CLOB 订单归因至 Antalpha Builder 账户，获取每周 USDC 分成
 
 **🔐 零托管** — 私钥永不离开用户钱包。所有交易通过用户自己钱包浏览器内的 EIP-712 类型数据签名完成。
 
@@ -427,7 +471,7 @@ openclaw skill install https://github.com/AntalphaAI/poly-master
 | **接口地址** | `https://mcp-skills.ai.antalpha.com/mcp` |
 | **协议** | Streamable HTTP (MCP 2024-11-05) |
 | **认证** | 调用 `antalpha-register` 工具获取 `agent_id` + `api_key` |
-| **工具数量** | 20+ MCP 工具，覆盖市场数据、交易、跟单、持仓管理 |
+| **工具数量** | 30+ MCP 工具，覆盖市场数据、交易、跟单、持仓管理、对冲策略 |
 
 ---
 
@@ -452,7 +496,7 @@ Agent             MCP Server         签名页面          用户钱包
 - ✅ 私钥永不离开钱包
 - ✅ 每笔签名绑定具体订单数据（EIP-712）
 - ✅ 签名页面在签名前展示完整订单详情
-- ✅ 链接 60 秒后过期
+- ✅ 链接 10 分钟后过期
 - ✅ 后端不托管资金或私钥
 
 ---
@@ -487,7 +531,7 @@ Agent             MCP Server         签名页面          用户钱包
 ## 文档
 
 - [SKILL.md](./SKILL.md) — 完整 Agent 指令、MCP 工具参考、输出格式规范
-- [docs/quickstart.md](./docs/quickstart.md) — 面向用户的配置指南
+- [docs/quickstart.md](./docs/quickstart.md) — 面向用户的配置指南（v2 已更新）
 
 ---
 
@@ -497,6 +541,6 @@ MIT © [Antalpha AI Team](https://www.antalpha.com/)
 
 ---
 
-**由 [Antalpha AI](https://ai.antalpha.com) 构建** 🎯
+**由 [Antalpha AI](https://ai.antalpha.com) 构建** 🎯 | v2.0.0
 
 *为下一代 AI 驱动的预测市场交易提供动力。*
