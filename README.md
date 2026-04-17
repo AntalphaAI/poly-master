@@ -26,7 +26,7 @@ Poly Master is an AI agent skill that connects to [Polymarket](https://polymarke
 - 📊 **Track portfolio & PnL** — Monitor positions, unrealized gains, and trade history
 - 🛡️ **Manage risk** — Built-in stop-loss, take-profit, position limits, and large order confirmation
 - 🔮 **PolyClaw Hedge Strategy (V2)** — LLM-driven logical implication arbitrage, T1/T2/T3 tiered signals
-- 🏗️ **Builder Attribution (V2)** — All CLOB orders attributed to Antalpha Builder account for weekly USDC rewards
+- 🏗️ **Powered by Polymarket Builder Program (V2)** — Orders are routed through the Polymarket Builder Program for optimal execution and liquidity
 
 **🔐 Zero Custody** — Private keys never leave the user's wallet. All transactions are signed in the user's own wallet browser via EIP-712 typed data signatures.
 
@@ -313,7 +313,7 @@ Poly Master 是一个 AI Agent 技能，通过 [Antalpha AI MCP Server](https://
 - 📊 **追踪持仓与盈亏** — 实时监控仓位、浮盈浮亏及交易历史
 - 🛡️ **风险管理** — 内置止损、止盈、单市场仓位上限及大单确认机制
 - 🔮 **PolyClaw 对冲策略（V2）** — LLM 驱动的逻辑蕴含套利，T1/T2/T3 分级信号
-- 🏗️ **Builder 归因（V2）** — 所有 CLOB 订单归因至 Antalpha Builder 账户，获取每周 USDC 分成
+- 🏗️ **接入 Polymarket Builder Program（V2）** — 订单通过 Polymarket Builder Program 路由，享受更优执行和流动性
 
 **🔐 零托管** — 私钥永不离开用户钱包。所有交易通过用户自己钱包浏览器内的 EIP-712 类型数据签名完成。
 
