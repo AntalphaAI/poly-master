@@ -1,255 +1,270 @@
-# 🎯 Poly Master — Polymarket Prediction Market Skill
+# 🎯 Poly Master v2 — Polymarket 预测市场 + PolyClaw 对冲策略
 
-> **Powered by [Antalpha AI](https://ai.antalpha.com)** — Zero-custody Polymarket aggregated trading & copy-trading for AI agents
+> **Powered by [Antalpha AI](https://ai.antalpha.com)** — Zero-custody Polymarket aggregated trading, copy-trading & LLM-driven hedge arbitrage
 
-[![Version](https://img.shields.io/badge/version-1.0.0-blue)]()
+[![Version](https://img.shields.io/badge/version-2.0.0-blue)]()
 [![MCP](https://img.shields.io/badge/protocol-MCP%202024--11--05-green)]()
 [![Chain](https://img.shields.io/badge/chain-Polygon-8247E5)]()
-[![License](https://img.shields.io/badge/license-MIT-yellow)]()
+[![Builder](https://img.shields.io/badge/Polymarket-Builder%20Program-orange)]()
 
 ---
 
-## What is Poly Master?
-
-Poly Master is an AI agent skill that connects to [Polymarket](https://polymarket.com) — the world's largest prediction market — through the [Antalpha AI MCP Server](https://mcp-skills.ai.antalpha.com). It enables any MCP-compatible AI agent to:
-
-- 📈 **Discover trending prediction markets** — Browse real-time hot markets by 24h volume, filter by category
-- 🔍 **Analyze market data** — View prices, liquidity, outcome probabilities, and trading volume
-- 💰 **Trade prediction outcomes** — Buy/sell Yes or No tokens with market or limit orders
-- 👥 **Copy-trade top traders** — Follow profitable traders with configurable copy ratios
-- 📊 **Track portfolio & PnL** — Monitor positions, unrealized gains, and trade history
-- 🛡️ **Manage risk** — Built-in stop-loss, take-profit, position limits, and large order confirmation
-
-**🔐 Zero Custody** — Private keys never leave the user's wallet. All transactions are signed in the user's own wallet browser via EIP-712 typed data signatures.
+[English](#english) | [中文](#中文)
 
 ---
 
-## Architecture
+## English
+
+### What's New in v2
+
+Poly Master v2 adds the **PolyClaw Strategy Layer** — an LLM-driven hedge arbitrage engine ported from the original Python PolyClaw project. It scans Polymarket for logically implied market pairs and generates near-risk-free hedge signals (totalCost < 1 USDC).
+
+**New in v2.0.0:**
+- 🔮 PolyClaw hedge strategy (5 new MCP tools)
+- 🏗️ Polymarket Builder Program attribution (all CLOB orders carry `X-Builder-Key`)
+- ⛽ Relayer integration (gas-free on-chain ops for users)
+- 🔌 LLM proxy with per-agent metering & billing (`llm_token_usage` table)
+- 📡 Strategy metrics dashboard (Tier distribution, signal rate, slippage cancellation rate)
+
+### Core Concept: Logical Implication Arbitrage
 
 ```
-┌──────────┐     Natural Language      ┌──────────────┐
-│   User   │ ◄──────────────────────► │   AI Agent   │
-└──────────┘                           └──────┬───────┘
-                                              │ MCP Protocol
-                                              ▼
-                                   ┌─────────────────────┐
-                                   │  Antalpha AI MCP     │
-                                   │  Server              │
-                                   │  (Streamable HTTP)   │
-                                   └──────────┬──────────┘
-                                              │
-                              ┌───────────────┼───────────────┐
-                              ▼               ▼               ▼
-                     ┌──────────────┐ ┌──────────────┐ ┌────────────┐
-                     │  Polymarket  │ │  Signing     │ │  Gamma     │
-                     │  CLOB API    │ │  Page        │ │  Markets   │
-                     └──────────────┘ └──────┬───────┘ └────────────┘
-                                             │
-                                             ▼
-                                   ┌─────────────────────┐
-                                   │  User's Wallet      │
-                                   │  MetaMask / OKX /   │
-                                   │  Trust / TokenPocket │
-                                   └─────────────────────┘
+If: "A = YES" logically implies "B = YES"
+Then: Buy A-YES + Buy B-NO forms a hedge where totalCost < 1.0
+      → Expected profit = 1.0 - totalCost (near-risk-free)
 ```
 
----
+This is different from statistical correlation — it's based on **hard logical necessity** detected by LLM reasoning.
 
-## Features
+### Architecture
 
-### 📈 Market Discovery
+```
+User ←→ AI Agent ←→ Antalpha MCP Server
+                          │
+              ┌───────────┼──────────────┐
+              ▼           ▼              ▼
+       PolyClawStrategy  LlmProxy    BuilderModule
+       Scan → Signal →  Per-agent   X-Builder-Key
+       Execute          token meter  + Relayer
+              │
+              ▼
+    Polymarket CLOB API (Polygon)
+```
 
-| Capability | Description |
-|-----------|-------------|
-| Trending Markets | Top markets ranked by 24h trading volume |
-| New Markets | Recently created prediction events |
-| Category Filter | crypto, politics, sports, geopolitics, finance |
-| Market Details | Real-time prices, volume, liquidity, outcome token IDs |
+### Quick Start
 
-**Example:**
-> *"What's trending on Polymarket right now?"*
->
-> *"Show me new crypto prediction markets from the last 24 hours"*
+#### 1. Install
 
-### 💰 Direct Trading
-
-| Capability | Description |
-|-----------|-------------|
-| Market Orders | Buy/sell at current best price |
-| Limit Orders | Set target price for execution |
-| QR Code Signing | Scan to open signing page in wallet browser |
-| Multi-Wallet | MetaMask, OKX Wallet, Trust Wallet, TokenPocket |
-
-**Example:**
-> *"Buy $50 on Yes for 'Will ETH hit $5000 by July?'"*
->
-> *"I want to bet $10 on No"*
-
-### 👥 Copy Trading
-
-| Capability | Description |
-|-----------|-------------|
-| Trader Discovery | Rank traders by win rate, volume, ROI |
-| Configurable Ratio | e.g. 10% = trader buys 100 shares → you buy 10 |
-| Multi-Follow | Follow multiple traders simultaneously |
-| Auto-Monitor | Checks for new trades every 30 seconds |
-
-**Example:**
-> *"Show me top Polymarket traders"*
->
-> *"Follow 0xABC... at 10% copy ratio"*
-
-### 📊 Portfolio & PnL
-
-| Capability | Description |
-|-----------|-------------|
-| Position Tracking | Current holdings with cost basis and market value |
-| PnL Reports | By period (day/week/month) with per-trader breakdown |
-| Trade History | Complete log of all trades with timestamps |
-| Open Orders | Pending orders awaiting fill |
-
-**Example:**
-> *"How's my Polymarket portfolio?"*
->
-> *"Show me this week's PnL"*
-
-### 🛡️ Risk Management
-
-| Parameter | Default | Range |
-|-----------|---------|-------|
-| Slippage Tolerance | 5% | 0.1% – 20% |
-| Daily Volume Limit | $2,000 | $10 – $100,000 |
-| Per-Market Limit | $500 | $1 – $50,000 |
-| Large Order Threshold | $1,000 | Requires explicit confirmation |
-| Stop-Loss (copy trading) | 20% | 1% – 99% |
-| Take-Profit (copy trading) | 50% | 1% – 999% |
-
----
-
-## Quick Start
-
-### Prerequisites
-
-1. **A crypto wallet** — MetaMask, OKX, Trust Wallet, or TokenPocket
-2. **USDC.e on Polygon** — Trading currency on Polymarket
-3. **Small amount of POL** — For gas fees (< $0.01 per tx)
-4. **Polymarket account** — Must complete onboarding at [polymarket.com](https://polymarket.com) first
-
-### Install
+Install through your AI agent's skill manager or OpenClaw:
 
 ```bash
-# Using ClawHub CLI
-clawhub install poly-master
+# OpenClaw
+openclaw skill install poly-master
 
-# Or manually copy to your agent's skills directory
+# Or clone directly
+git clone https://github.com/AntalphaAI/poly-master
 ```
 
-### Usage
+#### 2. Register
 
-Simply talk to your AI agent:
+On first use, ask your agent:
+> "Register me on Poly Master"
+
+The agent calls `antalpha-register` and persists your `agent_id` + `api_key`.
+
+#### 3. Trade
 
 ```
-👤 "What's hot on Polymarket?"
-🤖 Shows trending markets with prices and volumes
-
-👤 "Buy $20 on Yes for the top market"
-🤖 Generates order + signing link + QR code
-
-👤 "Show me top traders to copy"
-🤖 Lists profitable traders ranked by performance
-
-👤 "Follow that trader at 5% ratio"
-🤖 Starts monitoring and mirroring trades
+"What's hot on Polymarket right now?"
+"Buy $50 YES on the Iran nuclear deal"
+"Follow top 3 traders at 10% copy ratio"
+"How's my portfolio doing?"
 ```
 
----
+#### 4. PolyClaw Strategy (v2)
 
-## MCP Server
+```
+"Scan for hedge arbitrage opportunities"
+"Show me T1 and T2 signals"
+"Execute signal #3 with $100"
+"Show the strategy dashboard"
+```
 
-| Property | Value |
+### MCP Tools Summary
+
+#### v1 (existing)
+| Category | Tools |
 |----------|-------|
-| **Endpoint** | `https://mcp-skills.ai.antalpha.com/mcp` |
-| **Protocol** | Streamable HTTP (MCP 2024-11-05) |
-| **Auth** | Call `antalpha-register` tool to get `agent_id` + `api_key` |
-| **Tools** | 20+ MCP tools for market data, trading, copy-trading, portfolio |
+| Market Discovery | `poly-trending`, `poly-new`, `poly-market-info` |
+| Direct Trading | `poly-buy`, `poly-sell`, `poly-confirm`, `poly-order-status`, `poly-orders` |
+| Copy Trading | `poly-master-traders`, `poly-master-follow`, `poly-master-status`, `poly-master-risk`, `poly-master-pnl`, `poly-master-orders` |
+| Portfolio | `poly-positions`, `poly-history`, `poly-open-orders` |
+| System | `antalpha-register` |
 
-### Integration for External Agents
+#### v2 (new — PolyClaw Strategy)
+| Tool | Description |
+|------|-------------|
+| `poly-master-strategy-scan` | Scan markets for hedge signals, returns Tier-ranked list |
+| `poly-master-strategy-signal` | Get full details for a specific signal |
+| `poly-master-strategy-execute` | Execute a two-leg hedge order (generates signing URLs) |
+| `poly-master-strategy-metrics` | Strategy dashboard: Tier distribution, signal rate, slippage rate |
+| `poly-master-strategy-dry-run` | Toggle Dry-Run mode (true = log only, false = live execution) |
 
-Any MCP-compatible agent can integrate Poly Master:
+### Signal Tiers
 
-1. Connect to the MCP server endpoint
-2. Call `antalpha-register` to obtain credentials
-3. Use MCP tools as documented in [SKILL.md](./SKILL.md)
-4. Handle signing URLs by presenting them to the end user
+| Tier | Coverage | Risk Level |
+|------|----------|------------|
+| T1 | ≥ 0.95 | Near risk-free |
+| T2 | ≥ 0.90 | Low risk |
+| T3 | ≥ 0.85 | Moderate (watch liquidity) |
+
+### Security
+
+- **Zero custody**: Private keys never leave the user's wallet
+- **Builder Key**: Stored in `.env.local`, never committed to git, never shared in chat
+- **Wallet signing**: EIP-712 typed data via browser signing page
+- **DRY_RUN**: Default `true` in production — must explicitly set `false` to execute live trades
 
 ---
 
-## How Signing Works
+## 中文
+
+### v2 新增内容
+
+Poly Master v2 新增 **PolyClaw 策略层** —— 基于 LLM 推理的对冲套利引擎，从原始 Python PolyClaw 项目移植。扫描 Polymarket 市场间的逻辑蕴含关系，发现接近无风险的对冲信号（totalCost < 1 USDC）。
+
+**v2.0.0 更新：**
+- 🔮 PolyClaw 对冲策略（5 个新 MCP 工具）
+- 🏗️ Polymarket Builder Program 归因（所有 CLOB 订单携带 `X-Builder-Key`，获取 USDC 收益分成）
+- ⛽ Relayer 集成（用户免 Gas 链上操作）
+- 🔌 LLM 代理 + 按 agent_id 计量计费
+- 📡 策略监控看板
+
+### 核心原理：逻辑蕴含套利
 
 ```
-Agent                    MCP Server              Signing Page            User Wallet
-  │                         │                        │                      │
-  │── poly-buy ────────────►│                        │                      │
-  │                         │── build order ────────►│                      │
-  │◄── { signUrl } ────────│                        │                      │
-  │                         │                        │                      │
-  │── present signUrl ──────────────────────────────►│                      │
-  │                         │                        │── eth_signTypedData ─►│
-  │                         │                        │◄── signature ────────│
-  │                         │◄── submit signature ──│                      │
-  │                         │── place order on CLOB  │                      │
-  │◄── order confirmation ──│                        │                      │
+如果："A=YES" 在逻辑上必然导致 "B=YES"
+则：买入 A-YES + 买入 B-NO 构成对冲结构
+    totalCost < 1.0 → 预期利润 = 1.0 - totalCost
 ```
 
-**Security Guarantees:**
-- ✅ Private keys never leave the wallet
-- ✅ Each signature is bound to specific order data (EIP-712)
-- ✅ Signing page shows full order details before signature
-- ✅ Links expire after 60 seconds
-- ✅ No backend custody of funds or keys
+与统计相关性策略不同，PolyClaw 基于 **刚性逻辑必然性**（由 LLM 推理识别）。
+
+### 快速开始
+
+#### 第一步：注册
+
+首次使用对 AI 说：
+> "帮我注册 Poly Master"
+
+Agent 调用 `antalpha-register` 并持久化 `agent_id` + `api_key`。
+
+#### 第二步：普通交易
+
+```
+"Polymarket 现在最热的市场是什么？"
+"买 $50 的是，伊朗核协议"
+"跟随前 3 名交易员，10% 跟单比例"
+"查看我的持仓"
+```
+
+#### 第三步：PolyClaw 策略（v2 新功能）
+
+```
+"帮我扫描对冲套利机会"
+"显示 T1 和 T2 信号"
+"用 $100 执行第 3 个信号"
+"显示策略看板"
+```
+
+### 对冲策略执行流程
+
+```
+1. poly-master-strategy-scan → 获取信号列表（按覆盖率排序）
+2. poly-master-strategy-signal → 查看信号详情（双腿价格/流动性/推理依据）
+3. 用户确认 → poly-master-strategy-execute
+4. 依次完成两腿签名（target 腿先，cover 腿后）
+```
+
+**风控要点：**
+- `totalCost ≥ 1` 的信号直接拒绝
+- 下单金额不超过 `availableSize`（盘口实际流动性）
+- 第一腿失败时立即 abort，不提交第二腿（防止悬挂仓位）
+
+### Builder Program 收益
+
+PolyMaster V2 通过 Polymarket Builder Program 接入：
+- 所有订单归因至 Antalpha Builder 账户
+- 按每周交易量获取 USDC 奖励分成
+- 用户享受 Relayer 代付 Gas（需 Safe 或代理钱包）
 
 ---
 
-## Tech Stack
+## Environment Variables
 
-| Component | Technology |
-|-----------|-----------|
-| Chain | Polygon Mainnet (Chain ID 137) |
-| Currency | USDC.e |
-| Market Protocol | Polymarket CTF Exchange (Conditional Token Framework) |
-| SDK | [@polymarket/clob-client](https://github.com/Polymarket/clob-client) v5.8.1 |
-| Signing | EIP-712 Typed Data via browser |
-| Wallet Type | GnosisSafe (1/1) Proxy Wallet |
-| MCP Protocol | Streamable HTTP (MCP 2024-11-05) |
-| Backend | NestJS 11 + TypeORM + MySQL + Redis |
+```env
+# .env.local (never commit to git)
 
----
+# Polymarket Builder Program (Phase 5)
+POLYMARKET_BUILDER_API_KEY=<from polymarket.com/settings?tab=builder>
+POLYMARKET_RELAYER_API_KEY=<Relayer API Key>
+POLYMARKET_USE_RELAYER=true        # false for local dev
 
-## Important Disclaimers
+# LLM Proxy (Phase 0)
+OPENAI_MASTER_API_KEY=<platform master key>
+OPENAI_BASE_URL=<optional: custom endpoint>
 
-⚠️ **Not financial advice.** Prediction markets carry risk. Only trade with funds you can afford to lose.
-
-⚠️ **Polymarket availability** may vary by jurisdiction. Users are responsible for compliance with local regulations.
-
-⚠️ **Copy trading** mirrors another trader's decisions. Past performance does not guarantee future results.
-
-⚠️ **Gas fees** on Polygon are minimal (< $0.01) but require POL tokens.
+# Local MySQL (for token usage metering)
+DB_HOST=127.0.0.1
+DB_PORT=3306
+DB_USERNAME=antalpha
+DB_PASSWORD=<password>
+DB_DATABASE=antalpha_skills
+```
 
 ---
 
-## Documentation
+## Backend Module Structure (V2)
 
-- [SKILL.md](./SKILL.md) — Full agent instructions, MCP tool reference, output format specs
-- [docs/quickstart.md](./docs/quickstart.md) — User-facing setup guide
+```
+libs/skills/poly-master/src/
+├── poly-master.module.ts         # Root module
+├── service/                      # V1: market discovery, copy trading
+├── strategy/                     # V2: PolyClaw strategy layer
+│   ├── services/
+│   │   ├── coverage-calculator.service.ts   # Decimal.js coverage math
+│   │   ├── hedge-derivation.service.ts      # Implication → hedge position
+│   │   ├── llm-analyzer.service.ts          # LLM + 1-to-1 Redis cache
+│   │   ├── strategy-engine.service.ts       # Scan orchestration + event emit
+│   │   ├── circuit-breaker.service.ts       # LLM 429/5xx protection
+│   │   ├── trade-execution.service.ts       # OnEvent handler + revalidate
+│   │   ├── market-scanner.service.ts        # Fetch + MarketInfo bridge
+│   │   └── scan-metrics.service.ts          # In-memory dashboard
+│   ├── interfaces/
+│   │   └── hedge-signal.interface.ts        # HedgeSignal + ImplicationResult
+│   └── poly-claw-strategy.module.ts
+├── builder/                      # V2: Builder Program attribution
+│   ├── builder-order.service.ts  # Mandatory X-Builder-Key on all CLOB orders
+│   ├── relayer.service.ts        # Gas-free approval via Relayer
+│   ├── builder.config.ts
+│   └── builder.module.ts
+└── llm-proxy/ (shared lib)       # LLM proxy + BullMQ billing worker
+    ├── llm-proxy.service.ts
+    ├── billing.worker.ts
+    └── token-usage.entity.ts
+```
+
+**Test coverage**: 90/90 tests pass (Phase 0–5 cumulative) ✅
 
 ---
 
-## License
+## Links
 
-MIT
+- MCP Server: `https://mcp-skills.ai.antalpha.com/mcp`
+- Polymarket: `https://polymarket.com`
+- Builder Dashboard: `https://builders.polymarket.com`
+- Antalpha AI: `https://ai.antalpha.com`
 
 ---
 
-**Built by [Antalpha AI](https://ai.antalpha.com)** 🎯
-
-*Powering the next generation of AI-driven prediction market trading.*
+Built by [Antalpha AI](https://ai.antalpha.com) | v2.0.0 | 2026-04-15
