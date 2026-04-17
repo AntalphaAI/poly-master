@@ -10,7 +10,7 @@ Poly Master lets you interact with [Polymarket](https://polymarket.com) — the 
 - 💰 **Trade** — Buy/sell Yes or No outcome tokens
 - 👥 **Copy-Trade** — Follow top traders and mirror their moves
 - 📊 **Track** — Monitor your portfolio and PnL
-- 🔮 **PolyClaw Hedge** (V2) — LLM-driven near-riskless arbitrage signals
+- 🔮 **Poly Master Hedge** (V2) — LLM-driven near-riskless arbitrage signals
 
 **Zero custody** — your private keys never leave your wallet.
 
@@ -83,9 +83,9 @@ Use `poly-master-orders` to list orders with optional status filter.
 
 ---
 
-## Feature 3: PolyClaw Hedge Strategy (V2)
+## Feature 3: Poly Master Hedge Strategy (V2)
 
-PolyClaw uses LLM reasoning to find near-riskless two-leg hedge opportunities across markets. If "A=YES necessarily implies B=YES", you can buy both legs for totalCost < 1 USDC, locking in profit.
+Poly Master uses LLM reasoning to find near-riskless two-leg hedge opportunities across markets. If "A=YES necessarily implies B=YES", you can buy both legs for totalCost < 1 USDC, locking in profit.
 
 ### Signal Tiers
 
@@ -120,7 +120,7 @@ The agent will:
 
 ### Monitor strategy
 
-> "Show me the PolyClaw strategy dashboard"
+> "Show me the Poly Master strategy dashboard"
 
 Displays Tier distribution, signal frequency, slippage cancel rate, and recent scan results.
 

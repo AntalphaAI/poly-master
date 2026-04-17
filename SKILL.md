@@ -1,11 +1,11 @@
 ---
 name: poly-master
-description: "Polymarket prediction market skill by Antalpha AI. Discover trending markets, browse event predictions, invest in outcomes, copy-trade top traders, track portfolio & PnL. V2: PolyClaw hedge strategy — LLM-driven logical implication arbitrage with Builder Program attribution. Trigger: polymarket, prediction market, 预测市场, poly, copy trade, 跟单, hedge strategy, 对冲策略, arbitrage, 套利"
+description: "Polymarket prediction market skill by Antalpha AI. Discover trending markets, browse event predictions, invest in outcomes, copy-trade top traders, track portfolio & PnL. V2: Poly Master hedge strategy — LLM-driven logical implication arbitrage with Builder Program attribution. Trigger: polymarket, prediction market, 预测市场, poly, copy trade, 跟单, hedge strategy, 对冲策略, arbitrage, 套利"
 version: 2.0.0
 metadata: {"mcp":{"url":"https://mcp-skills.ai.antalpha.com/mcp","transport":"streamable-http"},"clawdbot":{"emoji":"🎯"}}
 ---
 
-# Poly Master v2 — Polymarket 预测市场 + PolyClaw 对冲策略
+# Poly Master v2 — Polymarket 预测市场 + Poly Master 对冲策略
 
 > Powered by **Antalpha AI** — Polymarket 聚合交易、跟单与 LLM 驱动对冲套利
 
@@ -13,7 +13,7 @@ metadata: {"mcp":{"url":"https://mcp-skills.ai.antalpha.com/mcp","transport":"st
 
 ## Overview
 
-Poly Master v2 在 v1 交易/跟单基础上，新增 **PolyClaw 策略层**：利用 LLM 逻辑推理能力，扫描市场间的逻辑蕴含关系，发现接近无风险的对冲套利机会。所有订单通过 Polymarket Builder Program 路由，享受更优执行和免 Gas 操作。
+Poly Master v2 在 v1 交易/跟单基础上，新增 **Poly Master 策略层**：利用 LLM 逻辑推理能力，扫描市场间的逻辑蕴含关系，发现接近无风险的对冲套利机会。所有订单通过 Polymarket Builder Program 路由，享受更优执行和免 Gas 操作。
 
 ### V2 新增核心能力
 
@@ -34,7 +34,7 @@ User ←→ AI Agent ←→ Antalpha MCP Server ←→ Polymarket APIs
                           ↕
               ┌───────────┼──────────────┐
               ▼           ▼              ▼
-       PolyClawStrategy  LlmProxy    BuilderModule
+       PolyMasterStrategy  LlmProxy    BuilderModule
        (对冲扫描引擎)   (计量计费)   (X-Builder-Key)
               ↕           ↕              ↕
          Gamma/CLOB    OpenAI API   CLOB/Relayer
@@ -90,9 +90,9 @@ User ←→ AI Agent ←→ Antalpha MCP Server ←→ Polymarket APIs
 
 ---
 
-## V2 PolyClaw Strategy Tools
+## V2 Poly Master Strategy Tools
 
-> **策略原理**：PolyClaw 基于逻辑蕴含而非市场相关性寻找套利机会。若 "A=YES 必然导致 B=YES"，则存在接近无风险的双腿对冲结构（totalCost < 1）。
+> **策略原理**：Poly Master 基于逻辑蕴含而非市场相关性寻找套利机会。若 "A=YES 必然导致 B=YES"，则存在接近无风险的双腿对冲结构（totalCost < 1）。
 
 ### 策略工具
 | Tool | Parameters | Description |
@@ -154,7 +154,7 @@ poly-buy / poly-sell → 生成签名链接
 展示订单预览格式（含二维码）→ 用户在钱包内打开签名
 ```
 
-### 3. PolyClaw 对冲策略流程
+### 3. Poly Master 对冲策略流程
 
 ```
 步骤 1: 调用 poly-master-strategy-scan({ agent_id, limit: 5 })
@@ -222,7 +222,7 @@ GET https://data-api.polymarket.com/positions?user={proxy_wallet}
 ### 对冲信号列表格式
 
 ```
-🔮 PolyClaw 对冲信号 — {扫描时间}
+🔮 Poly Master 对冲信号 — {扫描时间}
 
 共发现 {n} 个信号
 
@@ -238,7 +238,7 @@ GET https://data-api.polymarket.com/positions?user={proxy_wallet}
 ⭐⭐ T2 信号 / ⭐ T3 信号
 ...
 
-由 Antalpha AI PolyClaw 策略引擎提供
+由 Antalpha AI Poly Master 策略引擎提供
 ```
 
 ### 对冲执行格式（两腿）
@@ -262,7 +262,7 @@ GET https://data-api.polymarket.com/positions?user={proxy_wallet}
 
 ⚠️ 请先完成第一腿签名，再签第二腿
 
-由 Antalpha AI PolyClaw 策略引擎提供
+由 Antalpha AI Poly Master 策略引擎提供
 ```
 
 ### Portfolio 格式
@@ -293,8 +293,8 @@ GET https://data-api.polymarket.com/positions?user={proxy_wallet}
 | Per-Market Limit | $500 | 单市场最大仓位 |
 | Large Order Threshold | $1,000 | 需显式确认 |
 | Copy Trading Stop-Loss | 20% | 自动暂停阈值 |
-| PolyClaw Min Coverage | 0.85 | T3 最低覆盖率（低于此不展示） |
-| PolyClaw Max Position | availableSize | 不超过盘口最小流动性 |
+| Poly Master Min Coverage | 0.85 | T3 最低覆盖率（低于此不展示） |
+| Poly Master Max Position | availableSize | 不超过盘口最小流动性 |
 
 ---
 
