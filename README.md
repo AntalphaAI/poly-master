@@ -32,6 +32,73 @@ Poly Master is an AI agent skill that connects to [Polymarket](https://polymarke
 
 ---
 
+## Why V2? — PolyClaw Strategy
+
+> **The core insight**: Most prediction market tools help you pick winners. PolyClaw finds situations where *you don't need to pick* — because logic guarantees the outcome.
+
+### The Problem with Traditional Prediction Market Trading
+
+Traditional approaches require directional bets: you win only if your prediction is correct. Market sentiment, information asymmetry, and emotional bias all work against you.
+
+### PolyClaw's Approach: Logical Implication Arbitrage
+
+PolyClaw uses LLM reasoning to identify **logical implication relationships** between markets — not statistical correlation.
+
+**The principle:** If Event A happening *necessarily implies* Event B will happen, and the market hasn't priced this relationship correctly, you can buy both positions for a **combined cost under $1.00 USDC** and lock in a guaranteed profit regardless of the actual outcome.
+
+```
+Example:
+  Market A: "Will Iran sign a ceasefire by April 30?"  → Yes @ $0.20
+  Market B: "Will the Strait of Hormuz reopen by May?" → Yes @ $0.70
+
+  Logical implication: Iran ceasefire → Hormuz reopens (high confidence)
+  Total cost: $0.20 + $0.70 = $0.90 < $1.00
+  Guaranteed profit: $0.10 per $1 deployed (11.1% return)
+```
+
+### Why This Works
+
+| Traditional Trading | PolyClaw Strategy |
+|--------------------|-----------------|
+| Requires predicting outcomes | Exploits logical inconsistencies |
+| Win rate depends on market knowledge | Profit locked in at entry |
+| Exposed to sentiment swings | Protected by logical structure |
+| One-sided risk | Near-symmetric protection |
+| Manual research | LLM scans hundreds of markets automatically |
+
+### Signal Tiers
+
+| Tier | Coverage Score | Risk Level | Description |
+|------|---------------|------------|-------------|
+| **T1** | ≥ 0.95 | 🟢 Near-riskless | LLM has extremely high confidence in the logical implication. Rare but highest quality. |
+| **T2** | ≥ 0.90 | 🟡 Low risk | Strong implication with minor edge cases. Most common actionable signals. |
+| **T3** | ≥ 0.85 | 🟠 Moderate | Reasonable implication, but monitor liquidity and position size. |
+
+### Use Cases
+
+**📍 Scenario 1: Geopolitical Chains**
+When one event (ceasefire, election result, regime change) logically triggers a cascade of related outcomes, PolyClaw identifies which downstream markets are mispriced relative to the upstream event.
+
+**📍 Scenario 2: Sports & Tournament Brackets**
+If Team A winning the semifinal is already priced at 80%, but their path to the final implies 90% likelihood of another outcome, the gap is exploitable.
+
+**📍 Scenario 3: Regulatory / Policy Cascades**
+A policy decision (e.g., Fed rate cut) logically affects multiple downstream markets (mortgage rates, housing, crypto). PolyClaw finds the mispriced links.
+
+**📍 Scenario 4: Passive Alpha Generation**
+Run `poly-master-strategy-scan` daily. Collect T1/T2 signals when available. Execute small positions ($1–$10) consistently. Compound low-risk returns without directional exposure.
+
+### Key Advantages
+
+- 🧠 **LLM-powered reasoning** — not rule-based, not correlation-based; genuine semantic understanding of causal relationships
+- ⚡ **Automated scanning** — monitors all active Polymarket events continuously, surfaces only actionable signals
+- 🔒 **Structural edge** — profit is baked in at entry when totalCost < 1.0; no need to predict future outcomes
+- 💧 **Liquidity-aware** — signals are filtered by available order book depth; no phantom opportunities
+- 🎯 **Tiered confidence** — T1/T2/T3 scoring lets you choose your risk tolerance
+- 🔐 **Zero custody** — all execution stays in your wallet; PolyClaw only generates the signing links
+
+---
+
 ## Architecture
 
 ```
@@ -125,14 +192,18 @@ Poly Master is an AI agent skill that connects to [Polymarket](https://polymarke
 
 | Tier | Coverage | Description |
 |------|----------|-------------|
-| T1 | ≥ 0.95 | Strong logical implication, near-riskless |
-| T2 | ≥ 0.90 | Strong implication, low risk |
-| T3 | ≥ 0.85 | Moderate implication, monitor liquidity |
+| T1 | ≥ 0.95 | Near-riskless — profit locked at entry |
+| T2 | ≥ 0.90 | Low risk — strong logical implication |
+| T3 | ≥ 0.85 | Moderate — check liquidity before executing |
 
-**Example:**
-> *"Scan for hedge opportunities on Polymarket"*
+**Example conversations:**
+> *"Scan for arbitrage opportunities on Polymarket"*
+>
+> *"Show me T1 signals only"*
 >
 > *"Execute signal #2 with $5 USDC"*
+>
+> *"What's the PolyClaw strategy dashboard showing?"*
 
 ### 🛡️ Risk Management
 
@@ -316,6 +387,73 @@ Poly Master 是一个 AI Agent 技能，通过 [Antalpha AI MCP Server](https://
 - 🏗️ **接入 Polymarket Builder Program（V2）** — 订单通过 Polymarket Builder Program 路由，享受更优执行和流动性
 
 **🔐 零托管** — 私钥永不离开用户钱包。所有交易通过用户自己钱包浏览器内的 EIP-712 类型数据签名完成。
+
+---
+
+## 为什么选择 V2？PolyClaw 策略详解
+
+> **核心洞察**：多数预测市场工具要求你猜对结果。PolyClaw 进一步——它寻找那些你根本 *不需要猜* 的场景，因为逻辑已经决定了结果。
+
+### 传统预测市场交易的痛点
+
+传统方式需要单向投注：你只有在预测正确时才能赢利。市场情绪、信息不对称和认知偏差都在与你作对。
+
+### PolyClaw 的方法：逻辑蕴含套利
+
+PolyClaw 利用 LLM 推理识别市场间的**逻辑蕴含关系**——而非统计相关性。
+
+**原理：** 如果事件 A 发生*必然导致*事件 B 发生，且市场尚未正确定价这一关系，就可以同时买入两个仓位，**总成本不足 1 USDC**，锁定保底收益。
+
+```
+示例：
+  市场 A：“伊朗将在 4 月底前签署停火协议？”  → Yes @ $0.20
+  市场 B：“霍尔木兹海峡 5 月前恢复正常？” → Yes @ $0.70
+
+  逻辑蕴含：伊朗停火 → 海峡恢复（高置信）
+  总成本：$0.20 + $0.70 = $0.90 < $1.00
+  保底收益：$0.10 / 每 USDC（11.1% 回报）
+```
+
+### 为什么有效
+
+| 传统交易 | PolyClaw 策略 |
+|----------|--------------|
+| 需要预测结果 | 利用市场定价错误 |
+| 胜率取决于市场判断 | 入场即锁定收益 |
+| 暴露于情绪波动 | 由逻辑结构保护 |
+| 单向风险 | 近似对称保护 |
+| 人工调研 | LLM 自动扫描数百个事件 |
+
+### 信号分级
+
+| 分级 | 覆盖率 | 风险等级 | 说明 |
+|------|--------|-----------|------|
+| **T1** | ≥ 0.95 | 🟢 几乎无风险 | LLM 对逻辑蕴含关系置信极高，稀有但质量最高 |
+| **T2** | ≥ 0.90 | 🟡 低风险 | 强蕴含关系，少量边界情况，最常见的可操作信号 |
+| **T3** | ≥ 0.85 | 🟠 中等 | 合理蕴含关系，注意流动性和仓位大小 |
+
+### 使用场景
+
+**📍 场景一：地缘政治连锁效应**
+停火、选举结果、政权变化等事件经常引发一系列下游市场的定价失调。PolyClaw 定位其中被错误定价的下游市场。
+
+**📍 场景二：体育赛事与比赛路径**
+如果 A 队已继续事在八亝，但其死少路径意味着另一个市场的概率应为 90%，这个差距就是套利机会。
+
+**📍 场景三：监管政策连锁**
+一项政策决定（如美联储降息）逻辑上影响多个下游市场。PolyClaw 寻找定价失调的关联市场。
+
+**📍 场景四：被动生成 Alpha**
+每天运行 `poly-master-strategy-scan`，稳定收集 T1/T2 信号，每次戩5–10 USDC小仓位。无需方向判断，复利兴利就是超额收益。
+
+### V2 核心优势
+
+- 🧠 **LLM 语义推理** — 非规则、非相关性；真正理解因果关系
+- ⚡ **自动扫描** — 持续监控全市场活跃事件，只呈现可操作信号
+- 🔒 **结构性优势** — totalCost < 1.0 时收益在入场时就已确定
+- 💧 **流动性感知** — 信号已将盘口深度纳入考量，无虚假机会
+- 🎯 **分级置信** — T1/T2/T3 评分，按自身风险偏好选择
+- 🔐 **零托管** — 所有执行在钱包内完成，PolyClaw 只生成签名链接
 
 ---
 
