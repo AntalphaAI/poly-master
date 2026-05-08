@@ -36,7 +36,7 @@ Poly Master lets you interact with [Polymarket](https://polymarket.com) — the 
 
 The agent returns the top markets ranked by 24h trading volume, with prices for Yes/No outcomes.
 
-In v3, trending market results may include Arkham liquidity heat such as total volume and unique trader count when the MCP cache is warm.
+In v3, trending market results may include Antalpha liquidity heat such as total volume and unique trader count when the MCP cache is warm.
 
 ### Discover new markets
 
@@ -48,7 +48,7 @@ In v3, trending market results may include Arkham liquidity heat such as total v
 
 ---
 
-## Feature 2: Arkham Wallet & Event Intelligence
+## Feature 2: Antalpha Wallet & Event Data
 
 Use this when you want to understand the wallets or money flow behind Polymarket activity before trading or copy-trading.
 
@@ -81,8 +81,8 @@ The agent uses `poly-intel` with `top-holders`. It needs the event ID; if you on
 Sometimes the MCP Server returns the original Polymarket data and says the wallet has been queued for enrichment. In that case:
 
 - you can still use the market/portfolio data shown now
-- ask again later for Arkham wallet fields
-- do not treat missing Arkham data as low risk
+- ask again later for richer wallet data fields
+- do not treat missing data as low risk
 
 ---
 
@@ -173,7 +173,7 @@ Displays Tier distribution, signal frequency, slippage cancel rate, and recent s
 
 > "Show me top Polymarket traders"
 
-The agent analyzes recent trading activity and ranks traders by performance. In v3, when Arkham cache is available, it should explain real win rate and settled market count before you decide who to follow.
+The agent analyzes recent trading activity and ranks traders by performance. In v3, when Antalpha wallet data is available, it should explain real win rate and settled market count before you decide who to follow.
 
 ### Follow a trader
 
@@ -213,7 +213,7 @@ This means: when the trader buys 100 shares, you'll buy 10 shares.
 
 Shows all current positions with: direction, quantity, average price, current price, market value, and PnL.
 
-In v3, the response may also include Arkham wallet stats such as total PnL, win rate, and biggest win. If those fields are missing, the agent should say whether enrichment is queued instead of blocking the portfolio result.
+In v3, the response may also include Antalpha wallet data such as total PnL, win rate, and biggest win. If those fields are missing, the agent should say whether enrichment is queued instead of blocking the portfolio result.
 
 ### Trade history
 
