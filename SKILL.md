@@ -1,11 +1,11 @@
 ---
 name: poly-master
-description: "Polymarket prediction market skill by Antalpha AI. Discover trending markets, browse event predictions, invest in outcomes, copy-trade top traders, track portfolio & PnL. V2: Poly Master hedge strategy — LLM-driven logical implication arbitrage with Builder Program attribution. Trigger: polymarket, prediction market, 预测市场, poly, copy trade, 跟单, hedge strategy, 对冲策略, arbitrage, 套利"
-version: 2.0.0
+description: "Polymarket prediction market skill by Antalpha AI. Discover trending markets, browse event predictions, invest in outcomes, copy-trade top traders, track portfolio & PnL. V3: Arkham deep intelligence, wallet profiling, trader win-rate enrichment, event money-flow heat, and Poly Master hedge strategy. Trigger: polymarket, prediction market, 预测市场, poly, copy trade, 跟单, wallet profile, 钱包画像, smart money, hedge strategy, 对冲策略, arbitrage, 套利"
+version: 3.0.0
 metadata: {"mcp":{"url":"https://mcp-skills.ai.antalpha.com/mcp","transport":"streamable-http"},"clawdbot":{"emoji":"🎯"}}
 ---
 
-# Poly Master v2 — Polymarket 预测市场 + Poly Master 对冲策略
+# Poly Master v3 — Polymarket 预测市场 + Poly Master 对冲策略
 
 > Powered by **Antalpha AI** — Polymarket 聚合交易、跟单与 LLM 驱动对冲套利
 
@@ -13,17 +13,19 @@ metadata: {"mcp":{"url":"https://mcp-skills.ai.antalpha.com/mcp","transport":"st
 
 ## Overview
 
-Poly Master v2 在 v1 交易/跟单基础上，新增 **Poly Master 策略层**：利用 LLM 逻辑推理能力，扫描市场间的逻辑蕴含关系，发现接近无风险的对冲套利机会。所有订单通过 Polymarket Builder Program 路由，享受更优执行和免 Gas 操作。
+Poly Master v3 在交易、跟单和对冲策略基础上，新增 **Arkham 深度情报层**。Agent 可以在用户跟单、查看持仓、评估巨鲸信号、分析市场热度时，用更真实的钱包胜率、PnL、已结算市场数量和事件资金热度辅助解释。
 
-### V2 新增核心能力
+### V3 核心能力
 
 | 能力 | 说明 |
 |------|------|
 | 🔮 **对冲策略扫描** | LLM 分析市场逻辑蕴含关系，输出 T1/T2/T3 分级套利信号 |
 | 📡 **实时监控看板** | Tier 分布、滑点取消率、信号频率统计 |
+| 🧠 **Arkham 钱包画像** | 查询钱包 PnL、胜率、最大盈利、已结算市场活动 |
+| 👥 **真实交易员榜单** | `poly-master-traders` 返回真实 `winRate` 与 `settledMarkets` |
+| 🔥 **事件资金热度** | `poly-trending` / `poly-intel` 可展示 totalVolume、uniqueTraders、top holders |
 | 🏗️ **Builder Program 接入** | 所有 CLOB 订单通过 Polymarket Builder Program 路由，享受优先执行和免 Gas 操作 |
 | ⛽ **免 Gas 操作** | Relayer 代付链上 Gas，降低交易摩擦 |
-| 🔌 **LLM 代理计费** | 平台统一 Master Key，按 agent_id 计量 token 消耗 |
 
 ---
 
@@ -58,7 +60,7 @@ User ←→ AI Agent ←→ Antalpha MCP Server ←→ Polymarket APIs
 ### Market Discovery
 | Tool | Parameters | Description |
 |------|-----------|-------------|
-| `poly-trending` | `agent_id`, `limit?`, `category?` | 热门市场（按 24h 成交量）。Category: crypto/politics/sports/geopolitics/finance |
+| `poly-trending` | `agent_id`, `limit?`, `category?` | 热门市场（按 24h 成交量），缓存命中时可附加 Arkham 资金热度 |
 | `poly-new` | `agent_id`, `limit?`, `hours?`, `category?` | 最近创建的市场 |
 | `poly-market-info` | `agent_id`, `market_id` | 市场完整信息：价格/成交量/Token ID/结果列表 |
 
@@ -74,7 +76,7 @@ User ←→ AI Agent ←→ Antalpha MCP Server ←→ Polymarket APIs
 ### Copy Trading
 | Tool | Parameters | Description |
 |------|-----------|-------------|
-| `poly-master-traders` | `agent_id`, `limit?`, `sort_by?` | 顶级交易员列表（按胜率/成交量/ROI） |
+| `poly-master-traders` | `agent_id`, `limit?`, `sort_by?` | 顶级交易员列表，v3 可返回真实 `winRate` 与 `settledMarkets` |
 | `poly-master-follow` | `agent_id`, `address`, `copyRatio` | 跟随/取消跟随交易员，设置跟单比例（0.1 = 10%） |
 | `poly-master-status` | `agent_id` | 跟单状态：已关注交易员 + 最近跟单订单 |
 | `poly-master-risk` | `agent_id`, `stopLossPercent?`, `takeProfitPercent?`, `maxPositionPerMarket?`, `maxTotal?` | 查看/更新风控参数 |
@@ -84,13 +86,61 @@ User ←→ AI Agent ←→ Antalpha MCP Server ←→ Polymarket APIs
 ### Portfolio
 | Tool | Parameters | Description |
 |------|-----------|-------------|
-| `poly-positions` | `agent_id`, `wallet_address` | 当前持仓：成本/市值/未实现 PnL |
+| `poly-positions` | `agent_id`, `wallet_address` | 当前持仓：成本/市值/未实现 PnL；缓存命中时附加 Arkham wallet stats |
 | `poly-history` | `agent_id`, `wallet_address`, `limit?` | 交易历史记录 |
 | `poly-open-orders` | `agent_id`, `wallet_address` | 未成交/挂单中的订单 |
 
 ---
 
-## V2 Poly Master Strategy Tools
+## V3 Arkham Intelligence Tools
+
+### 什么时候使用 `poly-intel`
+
+| 用户意图 | 推荐 action | 用户示例 |
+|----------|-------------|----------|
+| 跟单前判断钱包质量 | `wallet-profile` | “这个钱包 0xABC... 值得跟单吗？” |
+| 找表现最稳定的交易员 | `leaderboard` | “按胜率和已结算市场数看顶级交易员。” |
+| 看某事件背后是谁在持仓 | `top-holders` | “这个 event_id 的 top holders 是谁？” |
+| 看全局资金热点 | `hotspots` | “现在 Polymarket 哪些事件资金最热？” |
+| 看网络级活动 | `network-stats` | “给我一个 Polymarket 网络活动概览。” |
+
+### `poly-intel` 参数规则
+
+| Action | Required parameters | 说明 |
+|--------|---------------------|------|
+| `wallet-profile` | `address` | 钱包画像：PnL、胜率、最大盈利、已结算市场 |
+| `leaderboard` | none | 交易员榜单 |
+| `top-holders` | `event_id` | 事件级 top holders |
+| `hotspots` | none | 全局热点事件 |
+| `network-stats` | none | 网络活动概览 |
+
+### 数据可用性解释
+
+`poly-intel` 和被富化的老工具都会返回 `meta`。Agent 必须按以下方式解释：
+
+- `meta.cached=true` + `meta.dataAvailable=true`：可以正常总结 Arkham 字段。
+- `meta.dataAvailable=false`：说明目前没有可用 Arkham/Polymarket 深度活动，不要把它说成“安全”或“风险低”。
+- `meta.queuedForEnrichment=true`：告诉用户后台正在补全，建议稍后再问；同时展示当前已有的 Polymarket/Gamma 数据。
+
+### 钱包画像输出建议
+
+```
+🧠 Polymarket 钱包画像 — {address}
+
+📊 胜率：{winRate}%（基于已结算市场）
+🏁 已结算市场：{settledMarkets}
+💰 总 PnL：{totalPnl}
+🏆 最大盈利：{question} / {outcome} / {pnl}
+🐋 巨鲸标签：{isWhale}
+
+解读：{用 2-3 句话说明是否值得继续观察、是否适合跟单、信息是否完整}
+
+由 Antalpha AI 提供聚合服务
+```
+
+---
+
+## V3 Poly Master Strategy Tools
 
 > **策略原理**：Poly Master 基于逻辑蕴含而非市场相关性寻找套利机会。若 "A=YES 必然导致 B=YES"，则存在接近无风险的双腿对冲结构（totalCost < 1）。
 
@@ -154,7 +204,32 @@ poly-buy / poly-sell → 生成签名链接
 展示订单预览格式（含二维码）→ 用户在钱包内打开签名
 ```
 
-### 3. Poly Master 对冲策略流程
+### 3. Arkham 情报辅助流程
+
+当用户说“这个钱包怎么样”“这个交易员值得跟吗”“这个市场背后资金热不热”“这个巨鲸有 Polymarket 表现吗”时，优先使用 v3 情报能力：
+
+```
+钱包/交易员评估：
+poly-intel({ action: "wallet-profile", address })
+→ 若 dataAvailable=true，总结 winRate / settledMarkets / totalPnl / biggestWin
+→ 若 queuedForEnrichment=true，说明后台正在补全，先给已有信息
+
+榜单/跟单评估：
+poly-master-traders({ agent_id, sort_by: "winRate" })
+→ 展示 winRate 与 settledMarkets，强调 settledMarkets 是已结算市场数，不是交易笔数
+
+热门市场分析：
+poly-trending({ agent_id, limit })
+→ 如返回 Arkham 资金热度，补充 totalVolume / uniqueTraders
+```
+
+**用户提示语示例：**
+- “帮我判断这个钱包是否值得跟单：0xABC...”
+- “列出胜率高且已结算市场多的 Polymarket 交易员。”
+- “这个市场有哪些 top holders？”
+- “这个巨鲸在 Polymarket 上有历史盈利吗？”
+
+### 4. Poly Master 对冲策略流程
 
 ```
 步骤 1: 调用 poly-master-strategy-scan({ agent_id, limit: 5 })
@@ -182,14 +257,14 @@ poly-buy / poly-sell → 生成签名链接
 - `totalCost ≥ 1` 的信号不允许执行（MCP 会拒绝，但 agent 也应前置检查）
 - `DRY_RUN=true` 时只记录日志，不产生签名链接
 
-### 4. 查看策略看板
+### 5. 查看策略看板
 
 ```
 poly-master-strategy-metrics({ agent_id })
 → 展示 Dashboard：Tier 分布 / 平均信号数/周期 / 滑点取消率 / 最近10次扫描结果
 ```
 
-### 5. Portfolio 查询（备用公开 API）
+### 6. Portfolio 查询（备用公开 API）
 
 当 `poly-positions` 未部署时：
 ```
@@ -300,7 +375,7 @@ GET https://data-api.polymarket.com/positions?user={proxy_wallet}
 
 ## Builder Program
 
-PolyMaster V2 所有 CLOB 订单均通过 Polymarket Builder Program 路由：
+PolyMaster V3 所有 CLOB 订单均通过 Polymarket Builder Program 路由：
 
 - **X-Builder-Key**：每笔订单必须携带（缺失则拒单）
 - **Relayer**：用户享受免 Gas 链上操作（需 Safe/Proxy 钱包）
@@ -356,4 +431,4 @@ poly-master/
 
 ---
 
-Built by [Antalpha AI](https://ai.antalpha.com) | MCP: `https://mcp-skills.ai.antalpha.com/mcp` | v2.0.0
+Built by [Antalpha AI](https://ai.antalpha.com) | MCP: `https://mcp-skills.ai.antalpha.com/mcp` | v3.0.0

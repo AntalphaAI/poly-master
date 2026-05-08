@@ -1,4 +1,4 @@
-# Poly Master v2 — Quick Start Guide
+# Poly Master v3 — Quick Start Guide
 
 > Powered by **Antalpha AI**
 
@@ -10,7 +10,8 @@ Poly Master lets you interact with [Polymarket](https://polymarket.com) — the 
 - 💰 **Trade** — Buy/sell Yes or No outcome tokens
 - 👥 **Copy-Trade** — Follow top traders and mirror their moves
 - 📊 **Track** — Monitor your portfolio and PnL
-- 🔮 **Poly Master Hedge** (V2) — LLM-driven near-riskless arbitrage signals
+- 🧠 **Profile wallets** — Check real win rate, settled markets, PnL, biggest win, and event money flow when cached
+- 🔮 **Poly Master Hedge** (V3) — LLM-driven near-riskless arbitrage signals
 
 **Zero custody** — your private keys never leave your wallet.
 
@@ -35,6 +36,8 @@ Poly Master lets you interact with [Polymarket](https://polymarket.com) — the 
 
 The agent returns the top markets ranked by 24h trading volume, with prices for Yes/No outcomes.
 
+In v3, trending market results may include Arkham liquidity heat such as total volume and unique trader count when the MCP cache is warm.
+
 ### Discover new markets
 
 > "Any new prediction markets in the last 24 hours?"
@@ -45,7 +48,45 @@ The agent returns the top markets ranked by 24h trading volume, with prices for 
 
 ---
 
-## Feature 2: Direct Trading
+## Feature 2: Arkham Wallet & Event Intelligence
+
+Use this when you want to understand the wallets or money flow behind Polymarket activity before trading or copy-trading.
+
+### Profile a wallet
+
+> "Profile this Polymarket wallet before I follow it: 0xABC..."
+
+The agent checks `poly-intel` with `wallet-profile` and summarizes:
+
+- win rate based on settled markets
+- settled market count
+- total PnL
+- biggest win, including market question, outcome, and PnL
+- whether the wallet appears whale-like
+
+### Find stronger traders
+
+> "Show me top Polymarket traders by win rate and settled markets"
+
+The agent uses `poly-master-traders`. In v3, `settledMarkets` means **number of settled markets**, not trade count.
+
+### Understand event holder concentration
+
+> "Who are the top holders for this event?"
+
+The agent uses `poly-intel` with `top-holders`. It needs the event ID; if you only mention a market, the agent should resolve the event first.
+
+### If deep data is not ready yet
+
+Sometimes the MCP Server returns the original Polymarket data and says the wallet has been queued for enrichment. In that case:
+
+- you can still use the market/portfolio data shown now
+- ask again later for Arkham wallet fields
+- do not treat missing Arkham data as low risk
+
+---
+
+## Feature 3: Direct Trading
 
 ### Buy outcome tokens
 
@@ -83,7 +124,7 @@ Use `poly-master-orders` to list orders with optional status filter.
 
 ---
 
-## Feature 3: Poly Master Hedge Strategy (V2)
+## Feature 4: Poly Master Hedge Strategy (V3)
 
 Poly Master uses LLM reasoning to find near-riskless two-leg hedge opportunities across markets. If "A=YES necessarily implies B=YES", you can buy both legs for totalCost < 1 USDC, locking in profit.
 
@@ -126,13 +167,13 @@ Displays Tier distribution, signal frequency, slippage cancel rate, and recent s
 
 ---
 
-## Feature 4: Copy Trading
+## Feature 5: Copy Trading
 
 ### Discover top traders
 
 > "Show me top Polymarket traders"
 
-The agent analyzes recent trading activity and ranks traders by performance.
+The agent analyzes recent trading activity and ranks traders by performance. In v3, when Arkham cache is available, it should explain real win rate and settled market count before you decide who to follow.
 
 ### Follow a trader
 
@@ -164,13 +205,15 @@ This means: when the trader buys 100 shares, you'll buy 10 shares.
 
 ---
 
-## Feature 5: Portfolio Tracking
+## Feature 6: Portfolio Tracking
 
 ### View positions
 
 > "How's my Polymarket portfolio?"
 
 Shows all current positions with: direction, quantity, average price, current price, market value, and PnL.
+
+In v3, the response may also include Arkham wallet stats such as total PnL, win rate, and biggest win. If those fields are missing, the agent should say whether enrichment is queued instead of blocking the portfolio result.
 
 ### Trade history
 
