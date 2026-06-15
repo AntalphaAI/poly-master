@@ -1,7 +1,7 @@
 ---
 name: poly-master
 description: "Polymarket prediction market skill by Antalpha AI. Discover trending markets, browse event predictions, invest in outcomes, copy-trade top traders, track portfolio & PnL. V3: Antalpha wallet data, trader win-rate enrichment, event money-flow heat, and Poly Master hedge strategy. Trigger: polymarket, prediction market, 预测市场, poly, copy trade, 跟单, wallet profile, 钱包画像, smart money, hedge strategy, 对冲策略, arbitrage, 套利"
-version: 3.0.0
+version: 3.0.1
 metadata: {"mcp":{"url":"https://mcp-skills.ai.antalpha.com/mcp","transport":"streamable-http"},"clawdbot":{"emoji":"🎯"}}
 ---
 
@@ -88,7 +88,7 @@ User ←→ AI Agent ←→ Antalpha MCP Server ←→ Polymarket APIs
 |------|-----------|-------------|
 | `poly-positions` | `agent_id`, `wallet_address` | 当前持仓：成本/市值/未实现 PnL；缓存命中时附加 Antalpha 钱包数据 |
 | `poly-history` | `agent_id`, `wallet_address`, `limit?` | 交易历史记录 |
-| `poly-open-orders` | `agent_id`, `wallet_address` | 未成交/挂单中的订单 |
+| `poly-master-orders` | `agent_id`, `wallet_address?`, `status?` | 查未成交/挂单：用 `status` 过滤（如 `status: "open"`） |
 
 ---
 
@@ -147,11 +147,9 @@ User ←→ AI Agent ←→ Antalpha MCP Server ←→ Polymarket APIs
 ### 策略工具
 | Tool | Parameters | Description |
 |------|-----------|-------------|
-| `poly-master-strategy-scan` | `agent_id`, `limit?`, `min_tier?` | 触发一轮市场扫描，返回按覆盖率排序的对冲信号列表 |
-| `poly-master-strategy-signal` | `agent_id`, `signal_id` | 查看单条对冲信号详情（双腿价格、覆盖率、可用流动性） |
-| `poly-master-strategy-execute` | `agent_id`, `signal_id`, `size_usdc`, `wallet_address`, `proxy_wallet` | 执行对冲信号（DRY_RUN=false 时才真正下单） |
+| `poly-master-strategy-scan` | `agent_id`, `limit?`, `min_tier?` | 触发一轮市场扫描，返回按覆盖率排序的对冲信号列表；**每条信号已含完整详情**（双腿 position、targetPrice/coverPrice、totalCost、coverage、expectedProfit、availableSize、tier、reasoning），无需再单独查询 |
 | `poly-master-strategy-metrics` | `agent_id` | 策略看板：Tier 分布/信号频率/滑点取消率/最近10次扫描 |
-| `poly-master-strategy-dry-run` | `agent_id`, `enabled` | 开启/关闭 Dry-Run 模式（true=只记日志，false=真实执行） |
+| `poly-master-strategy-dry-run` | `agent_id`, `enabled` | 开启/关闭 Dry-Run 模式。⚠️ 实盘执行（双腿下单）尚未通过 MCP 开放，该开关当前不影响下单行为 |
 
 ### 信号结构说明
 
@@ -229,33 +227,27 @@ poly-trending({ agent_id, limit })
 - “这个市场有哪些 top holders？”
 - “这个巨鲸在 Polymarket 上有历史盈利吗？”
 
-### 4. Poly Master 对冲策略流程
+### 4. Poly Master 对冲策略流程（只读分析）
+
+> ⚠️ **当前 MCP 仅支持对冲机会的扫描与分析；实盘执行（双腿下单）尚未通过 MCP 开放。** 待后端上线执行能力后再补充下单流程。请勿向用户承诺可经本 skill 自动完成对冲下单。
 
 ```
 步骤 1: 调用 poly-master-strategy-scan({ agent_id, limit: 5 })
-        → 返回按覆盖率排序的信号列表
+        → 返回按覆盖率排序的信号列表，每条信号已含完整详情
+          （双腿 target/cover position、targetPrice/coverPrice、totalCost、
+           coverage、expectedProfit、availableSize、tier、reasoning）
 
-步骤 2: 展示信号列表（按 Tier 分组，显示 totalCost/coverage/tier）
+步骤 2: 展示信号列表（按 Tier 分组，显示 totalCost/coverage/tier/expectedProfit）
+        → scan 输出即为信号详情，无需再单独查询单条信号
 
-步骤 3: 用户选择信号后调用 poly-master-strategy-signal({ agent_id, signal_id })
-        → 返回完整信号详情（双腿价格、流动性、推理依据）
-
-步骤 4: 确认后调用 poly-master-strategy-execute({
-          agent_id, signal_id,
-          size_usdc: <用户指定金额>,
-          wallet_address, proxy_wallet
-        })
-        → 返回两条腿的签名链接
-
-步骤 5: 依次展示两条腿的签名链接（先 target 腿，再 cover 腿）
-        ⚠️ 必须按顺序签名，不得跳过任一腿
+步骤 3: 如需策略整体表现，调用 poly-master-strategy-metrics（见下方第 5 节）
 ```
 
-**⚠️ 重要风控规则：**
-- 调用 `poly-master-strategy-execute` 前，必须先向用户展示 signal 详情并确认
-- 若 `availableSize` < 用户指定金额，自动缩减到 availableSize
-- `totalCost ≥ 1` 的信号不允许执行（MCP 会拒绝，但 agent 也应前置检查）
-- `DRY_RUN=true` 时只记录日志，不产生签名链接
+**⚠️ 展示与解读规则：**
+- `totalCost ≥ 1` 的信号无套利空间，应明确标注「不具备套利条件」
+- `availableSize` 为当前盘口最小可成交流动性，需提示用户实际可执行规模受限于此
+- `coverage` / `tier` 越高逻辑蕴含越强；T3 信号需特别提示流动性风险
+- 不得向用户承诺「无风险」，仅以 `expectedProfit = 1 − totalCost` 客观呈现理论利润
 
 ### 5. 查看策略看板
 
@@ -431,4 +423,4 @@ poly-master/
 
 ---
 
-Built by [Antalpha AI](https://ai.antalpha.com) | MCP: `https://mcp-skills.ai.antalpha.com/mcp` | v3.0.0
+Built by [Antalpha AI](https://ai.antalpha.com) | MCP: `https://mcp-skills.ai.antalpha.com/mcp` | v3.0.1

@@ -2,7 +2,7 @@
 
 > **Powered by [Antalpha AI](https://ai.antalpha.com)** — Zero-custody Polymarket aggregated trading & copy-trading for AI agents
 
-[![Version](https://img.shields.io/badge/version-3.0.0-blue)]()
+[![Version](https://img.shields.io/badge/version-3.0.1-blue)]()
 [![MCP](https://img.shields.io/badge/protocol-MCP%202024--11--05-green)]()
 [![Chain](https://img.shields.io/badge/chain-Polygon-8247E5)]()
 [![License](https://img.shields.io/badge/license-MIT-yellow)]()
@@ -369,11 +369,9 @@ Agent                    MCP Server              Signing Page            User Wa
 | `poly-master-status` | Copy-trading status |
 | `poly-master-risk` | View/update risk parameters |
 | `poly-master-pnl` | PnL report by period |
-| `poly-master-strategy-scan` | Scan for hedge signals |
-| `poly-master-strategy-signal` | Get signal details |
-| `poly-master-strategy-execute` | Execute two-leg hedge order |
+| `poly-master-strategy-scan` | Scan for hedge signals (returns full per-signal detail inline) |
 | `poly-master-strategy-metrics` | Strategy dashboard |
-| `poly-master-strategy-dry-run` | Toggle dry-run mode |
+| `poly-master-strategy-dry-run` | Toggle dry-run flag (live execution not yet exposed via MCP) |
 | `poly-intel` | Antalpha wallet and event data: wallet profile, leaderboard, top holders, hotspots, network stats |
 
 ---
@@ -418,7 +416,7 @@ MIT © [Antalpha AI Team](https://www.antalpha.com/)
 
 ---
 
-**Built by [Antalpha AI](https://ai.antalpha.com)** 🎯 | v3.0.0
+**Built by [Antalpha AI](https://ai.antalpha.com)** 🎯 | v3.0.1
 
 *Powering the next generation of AI-driven prediction market trading.*
 
@@ -784,6 +782,6 @@ MIT © [Antalpha AI Team](https://www.antalpha.com/)
 
 ---
 
-**由 [Antalpha AI](https://ai.antalpha.com) 构建** 🎯 | v3.0.0
+**由 [Antalpha AI](https://ai.antalpha.com) 构建** 🎯 | v3.0.1
 
 *为下一代 AI 驱动的预测市场交易提供动力。*
