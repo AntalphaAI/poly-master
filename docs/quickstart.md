@@ -56,7 +56,7 @@ Use this when you want to understand the wallets or money flow behind Polymarket
 
 > "Profile this Polymarket wallet before I follow it: 0xABC..."
 
-The agent checks `poly-intel` with `wallet-profile` and summarizes:
+The agent checks `poly-master-traders` with `view: wallet-profile` and summarizes:
 
 - win rate based on settled markets
 - settled market count
@@ -74,7 +74,7 @@ The agent uses `poly-master-traders`. In v3, `settledMarkets` means **number of 
 
 > "Who are the top holders for this event?"
 
-The agent uses `poly-intel` with `top-holders`. It needs the event ID; if you only mention a market, the agent should resolve the event first.
+The agent uses `poly-master-traders` with `view: top-holders`. It needs the event ID; if you only mention a market, the agent should resolve the event first.
 
 ### If deep data is not ready yet
 
@@ -108,13 +108,13 @@ The agent will:
 
 > "Check the status of my last order"
 
-Use `poly-confirm` with the order ID to check signing status + CLOB fill status.
+Use `poly-order-status` with the order ID (`order_id`) to check signing status + CLOB fill status.
 
 ### Browse all orders
 
 > "Show me all my pending orders"
 
-Use `poly-master-orders` to list orders with optional status filter.
+Use `poly-order-status` (omit `order_id`) to list orders with optional status filter.
 
 ### Important notes
 - **Market orders**: Buy/sell at current best price (default)
@@ -142,7 +142,7 @@ Poly Master uses LLM reasoning to find near-riskless two-leg hedge opportunities
 
 > "Find T1 arbitrage signals"
 
-The agent calls `poly-master-strategy-scan` and returns signals ranked by coverage.
+The agent calls `poly-strategy` (action: scan) and returns signals ranked by coverage.
 
 ### View signal details
 
